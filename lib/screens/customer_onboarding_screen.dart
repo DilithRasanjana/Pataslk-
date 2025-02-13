@@ -16,76 +16,20 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // Skip button
-          Positioned(
-            top: 40,
-            right: 20,
-            child: TextButton(
-              onPressed: () {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE6F3EC),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'Skip',
-                  style: TextStyle(
-                    color: Color(0xFF2E2E2E),
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          // Main content
-          Column(
-            children: [
-              Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  onPageChanged: (int page) {
-                    setState(() {
-                      _currentPage = page;
-                    });
-                  },
-                  children: [
-                    _buildFirstPage(),
-                    _buildSecondPage(),
-                    _buildThirdPage(),
-                  ],
-                ),
-              ),
-              // Page indicators
-              Padding(
-                padding: const EdgeInsets.only(bottom: 40),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    3,
-                    (index) => Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _currentPage == index
-                            ? const Color(0xFF0D47A1)
-                            : Colors.grey.shade300,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+      body: SafeArea(
+        child: PageView(
+          controller: _pageController,
+          onPageChanged: (int page) {
+            setState(() {
+              _currentPage = page;
+            });
+          },
+          children: [
+            _buildFirstPage(),
+            _buildSecondPage(),
+            _buildThirdPage(),
+          ],
+        ),
       ),
     );
   }
@@ -135,23 +79,39 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
             ),
           ),
           const SizedBox(height: 40),
-          ElevatedButton(
-            onPressed: () {
-              _pageController.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D47A1),
-              shape: const CircleBorder(),
-              padding: const EdgeInsets.all(20),
-            ),
-            child: const Icon(
-              Icons.arrow_forward,
-              color: Colors.white,
-              size: 30,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  );
+                },
+                child: const Text(
+                  'Skip',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  _pageController.nextPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0D47A1),
+                  shape: const CircleBorder(),
+                  padding: const EdgeInsets.all(20),
+                ),
+                child: const Icon(
+                  Icons.arrow_forward,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -234,23 +194,39 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
             ),
           ),
           const SizedBox(height: 40),
-          ElevatedButton(
-            onPressed: () {
-              _pageController.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D47A1),
-              shape: const CircleBorder(),
-              padding: const EdgeInsets.all(20),
-            ),
-            child: const Icon(
-              Icons.arrow_forward,
-              color: Colors.white,
-              size: 30,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  );
+                },
+                child: const Text(
+                  'Skip',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  _pageController.nextPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0D47A1),
+                  shape: const CircleBorder(),
+                  padding: const EdgeInsets.all(20),
+                ),
+                child: const Icon(
+                  Icons.arrow_forward,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+            ],
           ),
         ],
       ),
