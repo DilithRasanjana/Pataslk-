@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'customer_onboarding_screen.dart';
 
 class UserTypeScreen extends StatelessWidget {
   const UserTypeScreen({super.key});
@@ -25,7 +26,11 @@ class UserTypeScreen extends StatelessWidget {
             const SizedBox(height: 40),
             ElevatedButton(
               onPressed: () {
-                // TODO: Navigate to customer flow
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => const CustomerOnboardingScreen(),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF0D47A1),
