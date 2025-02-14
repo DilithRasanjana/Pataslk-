@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'menu_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,6 +15,14 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedIndex = index;
     });
+    
+    if (index == 3) { // Menu icon
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const MenuScreen(),
+        ),
+      );
+    }
   }
 
   @override
@@ -36,7 +45,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         IconButton(
                           icon: const Icon(Icons.menu),
                           onPressed: () {
-                            // TODO: Implement menu
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const MenuScreen(),
+                              ),
+                            );
                           },
                         ),
                         const SizedBox(width: 8),
@@ -61,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'HELLO DILITH 👋',
+                      'HELLO USER 👋',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey,
