@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'menu_screen.dart';
+import 'notification_screen.dart'; // Add this line
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -206,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: const Color(0xFF0D47A1),
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
@@ -216,7 +217,15 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Services',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
+            icon: IconButton(
+              icon: const Icon(Icons.notifications_outlined),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                );
+              },
+            ),
             label: 'Notifications',
           ),
           BottomNavigationBarItem(
