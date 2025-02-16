@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'menu_screen.dart';
-import 'notification_screen.dart'; // Add this line
+import 'notification_screen.dart';
+import 'all_categories_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -142,11 +143,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Appliance.png',
                       const Color(0xFFDCF4FF),
                     ),
-                    _buildServiceCategory(
-                      'See All',
-                      '',
-                      Colors.white,
-                      isLastItem: true,
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AllCategoriesScreen(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'See All',
+                        style: TextStyle(
+                          color: Colors.blue[800],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -237,36 +249,43 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildServiceCategory(String title, String imageUrl, Color bgColor, {bool isLastItem = false}) {
-    return Container(
-      width: 70,
+  Widget _buildServiceCategory(String title, String imageUrl, Color backgroundColor, {bool isLastItem = false}) {
+    return GestureDetector(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Selected: $title'),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+        // TODO: Navigate to service details
+      },
       child: Column(
         children: [
           Container(
-            width: 70,
-            height: 70,
+            width: 80,
+            height: 80,
             decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(35),
+              color: backgroundColor,
+              shape: BoxShape.circle,
             ),
-            child: isLastItem
-                ? const Icon(Icons.arrow_forward, color: Colors.grey)
-                : Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
+            child: Center(
+              child: Image.network(
+                imageUrl,
+                width: 45,
+                height: 45,
+                fit: BoxFit.contain,
+              ),
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             title,
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: 14,
+              color: Colors.black87,
               fontWeight: FontWeight.w500,
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),
