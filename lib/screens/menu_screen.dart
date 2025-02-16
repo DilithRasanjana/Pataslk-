@@ -6,6 +6,7 @@ import 'rating_screen.dart';
 import 'refer_friend_screen.dart';
 import 'contact_us_screen.dart';
 import 'notification_screen.dart';
+import 'payment_methods_screen.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
@@ -185,7 +186,10 @@ class MenuScreen extends StatelessWidget {
               Icons.payment_outlined,
               'Payments Methods',
               () {
-                // TODO: Implement payments methods navigation
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PaymentMethodsScreen()),
+                );
               },
             ),
 
