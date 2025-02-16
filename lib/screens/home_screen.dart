@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'menu_screen.dart';
 import 'notification_screen.dart';
 import 'all_categories_screen.dart';
+import 'service_category_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -252,13 +253,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildServiceCategory(String title, String imageUrl, Color backgroundColor, {bool isLastItem = false}) {
     return GestureDetector(
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Selected: $title'),
-            duration: const Duration(seconds: 1),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ServiceCategoryScreen(serviceName: title),
           ),
         );
-        // TODO: Navigate to service details
       },
       child: Column(
         children: [

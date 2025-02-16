@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'service_category_screen.dart';
 
 class AllCategoriesScreen extends StatelessWidget {
   const AllCategoriesScreen({super.key});
@@ -178,10 +179,12 @@ class AllCategoriesScreen extends StatelessWidget {
                           ),
                         );
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Selected: ${category['title']}'),
-                            duration: const Duration(seconds: 1),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ServiceCategoryScreen(
+                              serviceName: category['title'] as String,
+                            ),
                           ),
                         );
                       }
