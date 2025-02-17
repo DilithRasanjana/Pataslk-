@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'add_photos_screen.dart';
+import 'booking_details_screen.dart';
 
 class ServiceDetailsScreen extends StatefulWidget {
   final String serviceName;
@@ -289,11 +290,13 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
-                            // TODO: Implement booking logic
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Booking process will be implemented'),
-                                duration: Duration(seconds: 2),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BookingDetailsScreen(
+                                  serviceName: widget.serviceName,
+                                  amount: 1000.00, // TODO: Replace with actual service amount
+                                ),
                               ),
                             );
                           },
