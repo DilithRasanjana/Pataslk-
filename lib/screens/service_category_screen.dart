@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'service_details_screen.dart';
 
 class ServiceCategoryScreen extends StatelessWidget {
   final String serviceName;
@@ -99,11 +100,13 @@ class ServiceCategoryScreen extends StatelessWidget {
                 description: 'Quick, reliable help for single-day tasks or emergencies.',
                 imageUrl: 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/one%20day%20png.png',
                 onTap: () {
-                  // TODO: Navigate to service booking
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Selected One-Day Service for $serviceName'),
-                      duration: const Duration(seconds: 2),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ServiceDetailsScreen(
+                        serviceName: serviceName,
+                        serviceType: 'One-Day Service',
+                      ),
                     ),
                   );
                 },
@@ -113,11 +116,13 @@ class ServiceCategoryScreen extends StatelessWidget {
                 description: 'Flexible support for shorter commitments or recurring needs.',
                 imageUrl: 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/part%20time%20basis.png',
                 onTap: () {
-                  // TODO: Navigate to service booking
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Selected Part-Time Service for $serviceName'),
-                      duration: const Duration(seconds: 2),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ServiceDetailsScreen(
+                        serviceName: serviceName,
+                        serviceType: 'Part-Time',
+                      ),
                     ),
                   );
                 },
@@ -127,11 +132,13 @@ class ServiceCategoryScreen extends StatelessWidget {
                 description: 'Long-term solutions tailored to your specific project or goals.',
                 imageUrl: 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/contract%20basis.png',
                 onTap: () {
-                  // TODO: Navigate to service booking
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Selected Contract Service for $serviceName'),
-                      duration: const Duration(seconds: 2),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ServiceDetailsScreen(
+                        serviceName: serviceName,
+                        serviceType: 'Contract Basis',
+                      ),
                     ),
                   );
                 },
