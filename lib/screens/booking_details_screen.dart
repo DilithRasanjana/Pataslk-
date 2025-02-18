@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'payment_screen.dart';
 
 class BookingDetailsScreen extends StatefulWidget {
   final String serviceName;
@@ -235,7 +236,14 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
             // Pay Order Button
             ElevatedButton(
               onPressed: () {
-                // TODO: Implement payment processing
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PaymentScreen(
+                      amount: widget.amount,
+                    ),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue[900],
