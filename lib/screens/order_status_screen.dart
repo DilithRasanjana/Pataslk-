@@ -135,7 +135,8 @@ class OrderStatusScreen extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        // Save draft functionality
+                        // Navigate to home screen
+                        Navigator.of(context).popUntil((route) => route.isFirst);
                       },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -151,7 +152,8 @@ class OrderStatusScreen extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        // Book now functionality
+                        // Navigate to home screen
+                        Navigator.of(context).popUntil((route) => route.isFirst);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue[900],

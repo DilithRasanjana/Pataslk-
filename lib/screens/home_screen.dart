@@ -3,6 +3,7 @@ import 'menu_screen.dart';
 import 'notification_screen.dart';
 import 'all_categories_screen.dart';
 import 'service_category_screen.dart';
+import 'services_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,7 +20,13 @@ class _HomeScreenState extends State<HomeScreen> {
       _selectedIndex = index;
     });
     
-    if (index == 3) { // Menu icon
+    if (index == 1) { 
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const ServicesScreen(),
+        ),
+      );
+    } else if (index == 3) { // Menu icon
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => const MenuScreen(),
@@ -77,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'HELLO USER 👋',
+                      'HELLO USER ',
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.grey,
@@ -226,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.description),
+            icon: Icon(Icons.assignment),
             label: 'Services',
           ),
           BottomNavigationBarItem(
