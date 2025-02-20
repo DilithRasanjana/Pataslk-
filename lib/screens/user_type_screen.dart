@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'customer_onboarding_screen.dart';
+import 'worker_onboarding_screen.dart';
 
 class UserTypeScreen extends StatelessWidget {
   const UserTypeScreen({super.key});
@@ -51,21 +52,26 @@ class UserTypeScreen extends StatelessWidget {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                // TODO: Navigate to service provider flow
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const WorkerOnboardingScreen(),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0D47A1),
-                padding: const EdgeInsets.symmetric(vertical: 15),
+                backgroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                elevation: 3,
               ),
-              child: const Text(
-                "I'm a Service Provider",
+              child: Text(
+                'I\'m a Service Provider',
                 style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.white,
+                  color: Colors.blue[900],
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
