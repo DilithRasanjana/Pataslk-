@@ -4,9 +4,106 @@ import 'service_provider_notification_screen.dart';
 import 'service_provider_profile_screen.dart';
 import 'service_provider_rating_screen.dart';
 import 'service_provider_support_screen.dart';
+import 'user_type_screen.dart';
 
 class ServiceProviderMenuScreen extends StatelessWidget {
   const ServiceProviderMenuScreen({Key? key}) : super(key: key);
+
+  Future<void> _showLogoutDialog(BuildContext context) {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: const BoxDecoration(
+                    color: Colors.orange,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.logout,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Come back soon!',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Are you sure you want\nto logout?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const UserTypeScreen(),
+                        ),
+                        (route) => false,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0D47A1),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Yes, Logout',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +169,13 @@ class ServiceProviderMenuScreen extends StatelessWidget {
                       icon: Icons.campaign,
                       title: 'Advertisement',
                       onTap: () {
-                        // Navigate to advertisements
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Advertisement feature will be available in future updates!'),
+                            duration: Duration(seconds: 2),
+                            backgroundColor: Color(0xFF0D47A1),
+                          ),
+                        );
                       },
                     ),
                     _buildMenuItem(
@@ -115,13 +218,7 @@ class ServiceProviderMenuScreen extends StatelessWidget {
                     _buildMenuItem(
                       icon: Icons.logout,
                       title: 'Logout',
-                      onTap: () {
-                        // Handle logout
-                        Navigator.of(context).pushNamedAndRemoveUntil(
-                          '/',
-                          (route) => false,
-                        );
-                      },
+                      onTap: () => _showLogoutDialog(context),
                     ),
                     const SizedBox(height: 20),
                   ],

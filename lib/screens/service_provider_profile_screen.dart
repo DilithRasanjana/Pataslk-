@@ -16,6 +16,7 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
   final _nameController = TextEditingController();
   String? _selectedGender;
   String? _selectedOccupation;
+  DateTime? _selectedDate;
 
   final List<String> _genders = ['Male', 'Female'];
   final List<String> _occupations = [
@@ -196,6 +197,40 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
                       }
                       return null;
                     },
+                  ),
+                ),
+                _buildInfoSection(
+                  'Date of Birth',
+                  GestureDetector(
+                    onTap: () async {
+                      final DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedDate ?? DateTime.now(),
+                        firstDate: DateTime(1923),
+                        lastDate: DateTime.now(),
+                      );
+                      if (picked != null && picked != _selectedDate) {
+                        setState(() {
+                          _selectedDate = picked;
+                        });
+                      }
+                    },
+                    child: AbsorbPointer(
+                      child: TextField(
+                        controller: TextEditingController(
+                          text: _selectedDate != null
+                              ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
+                              : '',
+                        ),
+                        decoration: InputDecoration(
+                          labelText: 'Date of Birth',
+                          suffixIcon: const Icon(Icons.calendar_today),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 _buildInfoSection(
