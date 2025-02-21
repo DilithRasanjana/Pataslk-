@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'service_provider_menu_screen.dart';
 import 'service_provider_notification_screen.dart';
+import 'service_provider_order_detail_screen.dart';
+import 'service_provider_services_screen.dart';
 
 class ServiceProviderHomeScreen extends StatelessWidget {
   const ServiceProviderHomeScreen({Key? key}) : super(key: key);
@@ -205,16 +207,17 @@ class ServiceProviderHomeScreen extends StatelessWidget {
                           const SizedBox(height: 16),
                           ElevatedButton(
                             onPressed: () {
-                              // Handle join
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const ServiceProviderOrderDetailScreen(),
+                                ),
+                              );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepPurple,
+                              backgroundColor: Colors.blue[900],
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
                               ),
                             ),
                             child: const Text(
@@ -236,32 +239,27 @@ class ServiceProviderHomeScreen extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        selectedItemColor: Colors.blue[900],
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: const Color(0xFF0D47A1),
         unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notifications',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Menu',
-          ),
-        ],
+        currentIndex: 0,
         onTap: (index) {
-          if (index == 1) { // Notifications
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ServiceProviderServicesScreen(),
+              ),
+            );
+          } else if (index == 2) {
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => const ServiceProviderNotificationScreen(),
               ),
             );
-          } else if (index == 2) { // Menu
+          } else if (index == 3) {
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -270,6 +268,35 @@ class ServiceProviderHomeScreen extends StatelessWidget {
             );
           }
         },
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Image.network(
+              'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/service%20png.png',
+              width: 24,
+              height: 24,
+              color: Colors.grey,
+            ),
+            activeIcon: Image.network(
+              'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/service%20png.png',
+              width: 24,
+              height: 24,
+              color: const Color(0xFF0D47A1),
+            ),
+            label: 'Services',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.notifications),
+            label: 'Notifications',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.menu),
+            label: 'Menu',
+          ),
+        ],
       ),
     );
   }

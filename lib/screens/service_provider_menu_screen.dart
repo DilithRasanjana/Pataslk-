@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'service_provider_home_screen.dart';
 import 'service_provider_notification_screen.dart';
 import 'service_provider_profile_screen.dart';
+import 'service_provider_rating_screen.dart';
+import 'service_provider_support_screen.dart';
 
 class ServiceProviderMenuScreen extends StatelessWidget {
   const ServiceProviderMenuScreen({Key? key}) : super(key: key);
@@ -89,14 +91,24 @@ class ServiceProviderMenuScreen extends StatelessWidget {
                       icon: Icons.star,
                       title: 'Rate',
                       onTap: () {
-                        // Navigate to rate screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ServiceProviderRatingScreen(),
+                          ),
+                        );
                       },
                     ),
                     _buildMenuItem(
                       icon: Icons.support_agent,
                       title: 'Support',
                       onTap: () {
-                        // Navigate to support screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ServiceProviderSupportScreen(),
+                          ),
+                        );
                       },
                     ),
                     const Spacer(),
