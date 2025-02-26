@@ -6,10 +6,12 @@ class ServiceProviderProfileScreen extends StatefulWidget {
   const ServiceProviderProfileScreen({Key? key}) : super(key: key);
 
   @override
-  State<ServiceProviderProfileScreen> createState() => _ServiceProviderProfileScreenState();
+  State<ServiceProviderProfileScreen> createState() =>
+      _ServiceProviderProfileScreenState();
 }
 
-class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScreen> {
+class _ServiceProviderProfileScreenState
+    extends State<ServiceProviderProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
@@ -17,6 +19,7 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
   String? _selectedGender;
   String? _selectedOccupation;
   DateTime? _selectedDate;
+  String? _selectedDistrict;
 
   final List<String> _genders = ['Male', 'Female'];
   final List<String> _occupations = [
@@ -27,6 +30,34 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
     'Electrician',
     'Professional Painter',
     'Professional Cleaner'
+  ];
+
+  final List<String> _districts = [
+    'Ampara',
+    'Anuradhapura',
+    'Badulla',
+    'Batticaloa',
+    'Colombo',
+    'Galle',
+    'Gampaha',
+    'Hambantota',
+    'Jaffna',
+    'Kalutara',
+    'Kandy',
+    'Kegalle',
+    'Kilinochchi',
+    'Kurunegala',
+    'Mannar',
+    'Matale',
+    'Matara',
+    'Monaragala',
+    'Mullaitivu',
+    'Nuwara Eliya',
+    'Polonnaruwa',
+    'Puttalam',
+    'Ratnapura',
+    'Trincomalee',
+    'Vavuniya'
   ];
 
   @override
@@ -104,7 +135,8 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const ServiceProviderPhotoUploadScreen(),
+                              builder: (context) =>
+                                  const ServiceProviderPhotoUploadScreen(),
                             ),
                           );
                         },
@@ -282,6 +314,33 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please select your occupation';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                _buildInfoSection(
+                  'Operating District',
+                  DropdownButtonFormField<String>(
+                    value: _selectedDistrict,
+                    decoration: const InputDecoration(
+                      hintText: 'Select operating district',
+                      border: InputBorder.none,
+                    ),
+                    items: _districts.map((String district) {
+                      return DropdownMenuItem(
+                        value: district,
+                        child: Text(district),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedDistrict = newValue;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select your operating district';
                       }
                       return null;
                     },
