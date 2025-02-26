@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
+import 'user_type_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
 import 'rating_screen.dart';
@@ -61,7 +61,8 @@ class MenuScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => const UserTypeScreen()),
                       (route) => false,
                     );
                   },
@@ -188,7 +189,8 @@ class MenuScreen extends StatelessWidget {
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const PaymentMethodsScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const PaymentMethodsScreen()),
                 );
               },
             ),
@@ -199,7 +201,8 @@ class MenuScreen extends StatelessWidget {
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const NotificationScreen()),
                 );
               },
             ),
@@ -221,7 +224,8 @@ class MenuScreen extends StatelessWidget {
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ReferFriendScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const ReferFriendScreen()),
                 );
               },
             ),
@@ -232,7 +236,8 @@ class MenuScreen extends StatelessWidget {
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ContactUsScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const ContactUsScreen()),
                 );
               },
             ),
