@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'service_provider_photo_upload_screen.dart';
 
 class ServiceProviderProfileScreen extends StatefulWidget {
@@ -19,7 +20,7 @@ class _ServiceProviderProfileScreenState
   String? _selectedGender;
   String? _selectedOccupation;
   DateTime? _selectedDate;
-  String? _selectedDistrict;
+  List<String> _selectedDistricts = [];
 
   final List<String> _genders = ['Male', 'Female'];
   final List<String> _occupations = [
@@ -320,30 +321,57 @@ class _ServiceProviderProfileScreenState
                   ),
                 ),
                 _buildInfoSection(
-                  'Operating District',
-                  DropdownButtonFormField<String>(
-                    value: _selectedDistrict,
-                    decoration: const InputDecoration(
-                      hintText: 'Select operating district',
-                      border: InputBorder.none,
-                    ),
-                    items: _districts.map((String district) {
-                      return DropdownMenuItem(
-                        value: district,
-                        child: Text(district),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedDistrict = newValue;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select your operating district';
-                      }
-                      return null;
-                    },
+                  'Operating Districts',
+                  Column(
+                    children: [
+                      MultiSelectDialogField<String>(
+                        items: _districts
+                            .map((district) => MultiSelectItem<String>(
+                                  district,
+                                  district,
+                                ))
+                            .toList(),
+                        initialValue: _selectedDistricts,
+                        title: const Text("Select Districts"),
+                        selectedColor: Colors.blue,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.grey.shade300,
+                          ),
+                        ),
+                        buttonIcon: const Icon(Icons.arrow_drop_down),
+                        buttonText: Text(
+                          _selectedDistricts.isEmpty
+                              ? "Select operating districts"
+                              : "${_selectedDistricts.length} districts selected",
+                        ),
+                        onConfirm: (results) {
+                          setState(() {
+                            _selectedDistricts = results;
+                          });
+                        },
+                        validator: (values) {
+                          if (values == null || values.isEmpty) {
+                            return 'Please select at least one district';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      MultiSelectChipDisplay<String>(
+                        items: _selectedDistricts
+                            .map((district) =>
+                                MultiSelectItem<String>(district, district))
+                            .toList(),
+                        onTap: (value) {
+                          setState(() {
+                            _selectedDistricts.remove(value);
+                          });
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],
