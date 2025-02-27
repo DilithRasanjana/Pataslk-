@@ -78,16 +78,22 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   }
 
   Future<void> _selectLocation(BuildContext context) async {
-    final result = await Navigator.push(
+    final result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
         builder: (context) => const LocationPickerScreen(),
       ),
     );
+
     if (result != null) {
       setState(() {
-        selectedLocation = result['coordinates'];
-        selectedAddress = result['address'];
+        selectedLocation = result['coordinates'] as LatLng;
+        selectedAddress = result['address'] as String;
+
+        // Print for debugging
+        print(
+            'Selected Location: ${selectedLocation?.latitude}, ${selectedLocation?.longitude}');
+        print('Selected Address: $selectedAddress');
       });
     }
   }
@@ -169,7 +175,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            // Location Selection
+            // Updated Location Selection
             InkWell(
               onTap: () => _selectLocation(context),
               child: Container(
@@ -178,16 +184,36 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                   color: const Color(0xFFE8FFB7),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.location_on),
-                    const SizedBox(width: 12),
-                    Text(
-                      selectedLocation != null
-                          ? selectedAddress ?? 'Location selected'
-                          : 'Select your Location',
-                      style: const TextStyle(fontSize: 16),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            selectedLocation != null
+                                ? 'Selected Location'
+                                : 'Select your Location',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                    if (selectedAddress != null &&
+                        selectedAddress!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        selectedAddress!,
+                        style: const TextStyle(fontSize: 14),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ],
                 ),
               ),

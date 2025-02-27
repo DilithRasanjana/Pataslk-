@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'dart:async';
 
 class LocationPickerScreen extends StatefulWidget {
   const LocationPickerScreen({Key? key}) : super(key: key);
@@ -20,6 +21,14 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   static const LatLng _sriLankaCenter = LatLng(7.8731, 80.7718);
   static const double _defaultZoom = 8.0;
+
+  bool _isTracking = false;
+  StreamSubscription<Position>? _positionStreamSubscription;
+  LatLng? _currentLocation;
+
+  final TextEditingController _searchController = TextEditingController();
+  List<Location> _searchResults = [];
+  bool _isSearching = false;
 
   Future<Position> _getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -123,6 +132,138 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     );
   }
 
+  Future<void> _requestLocationPermission() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location permissions are required')),
+        );
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Location permissions are permanently denied'),
+        ),
+      );
+      return;
+    }
+  }
+
+  void _toggleLocationTracking() async {
+    if (!_isTracking) {
+      await _requestLocationPermission();
+
+      setState(() => _isTracking = true);
+
+      const locationSettings = LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10,
+        timeLimit: null,
+      );
+
+      try {
+        final Position position = await Geolocator.getCurrentPosition();
+        final currentLocation = LatLng(position.latitude, position.longitude);
+
+        if (mounted) {
+          setState(() => _currentLocation = currentLocation);
+          if (_isWithinSriLanka(currentLocation)) {
+            _mapController.move(currentLocation, _mapController.camera.zoom);
+          }
+        }
+
+        _positionStreamSubscription = Geolocator.getPositionStream(
+          locationSettings: locationSettings,
+        ).listen((Position position) {
+          final newLocation = LatLng(position.latitude, position.longitude);
+          if (mounted && _isTracking) {
+            setState(() => _currentLocation = newLocation);
+            if (_isWithinSriLanka(newLocation)) {
+              _mapController.move(newLocation, _mapController.camera.zoom);
+            }
+          }
+        }, onError: (e) {
+          debugPrint('Error getting location updates: $e');
+          _stopTracking();
+        });
+      } catch (e) {
+        debugPrint('Error starting location tracking: $e');
+        _stopTracking();
+      }
+    } else {
+      _stopTracking();
+    }
+  }
+
+  void _stopTracking() {
+    setState(() => _isTracking = false);
+    _positionStreamSubscription?.cancel();
+    _positionStreamSubscription = null;
+  }
+
+  Future<void> _searchLocation(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+      });
+      return;
+    }
+
+    setState(() => _isSearching = true);
+    try {
+      // Add "Sri Lanka" to the search query to focus on Sri Lankan locations
+      List<Location> locations = await locationFromAddress("$query, Sri Lanka");
+      setState(() {
+        _searchResults = locations.where((loc) {
+          final position = LatLng(loc.latitude, loc.longitude);
+          return _isWithinSriLanka(position);
+        }).toList();
+      });
+    } catch (e) {
+      debugPrint('Error searching location: $e');
+      setState(() => _searchResults = []);
+    } finally {
+      setState(() => _isSearching = false);
+    }
+  }
+
+  void _selectSearchResult(Location location) {
+    final position = LatLng(location.latitude, location.longitude);
+    setState(() {
+      _selectedLocation = position;
+      _searchResults = [];
+      _searchController.clear();
+    });
+    _mapController.move(position, 15.0);
+    _getAddressFromLatLng(position);
+  }
+
+  void _confirmLocation() {
+    if (_selectedLocation != null) {
+      // Make sure we have both coordinates and address
+      final result = {
+        'coordinates': _selectedLocation,
+        'address': _address ?? 'Unknown location',
+        'latitude': _selectedLocation!.latitude,
+        'longitude': _selectedLocation!.longitude,
+      };
+      Navigator.pop(context, result);
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _stopTracking();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -134,21 +275,27 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select Location'),
+        backgroundColor: Colors.blue[900],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Select Location',
+          style: TextStyle(color: Colors.white),
+        ),
         actions: [
-          if (_selectedLocation != null)
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context, {
-                  'coordinates': _selectedLocation,
-                  'address': _address ?? 'Unknown location'
-                });
-              },
-              child: const Text(
-                'Confirm',
-                style: TextStyle(color: Colors.white),
+          TextButton.icon(
+            onPressed: _selectedLocation != null ? _confirmLocation : null,
+            icon: const Icon(Icons.check, color: Colors.white),
+            label: const Text(
+              'Confirm',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
             ),
+          ),
         ],
       ),
       body: Stack(
@@ -184,6 +331,30 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.app',
               ),
+              // Add current location marker
+              if (_currentLocation != null)
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: _currentLocation!,
+                      width: 50,
+                      height: 50,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.3),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.my_location,
+                            color: Colors.blue,
+                            size: 30,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               if (_selectedLocation != null)
                 MarkerLayer(
                   markers: [
@@ -200,6 +371,121 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   ],
                 ),
             ],
+          ),
+          // Add search bar at the top
+          Positioned(
+            top: 16,
+            left: 16,
+            right: 16,
+            child: Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search location in Sri Lanka',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchResults = []);
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    onChanged: (value) => _searchLocation(value),
+                  ),
+                ),
+                if (_searchResults.isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.3,
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, index) {
+                        final location = _searchResults[index];
+                        return ListTile(
+                          leading: const Icon(Icons.location_on),
+                          title: Text(
+                            '${location.latitude.toStringAsFixed(4)}, ${location.longitude.toStringAsFixed(4)}',
+                          ),
+                          onTap: () => _selectSearchResult(location),
+                        );
+                      },
+                    ),
+                  ),
+                if (_isSearching)
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          // Add location tracking button
+          Positioned(
+            right: 16,
+            bottom: 200, // Above zoom controls
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: Icon(
+                  _isTracking ? Icons.gps_fixed : Icons.gps_not_fixed,
+                  color: _isTracking ? Colors.blue : Colors.grey,
+                ),
+                onPressed: _toggleLocationTracking,
+                tooltip: _isTracking ? 'Stop tracking' : 'Track my location',
+              ),
+            ),
           ),
           // Replace the existing zoom controls Positioned widget with this:
           Positioned(
