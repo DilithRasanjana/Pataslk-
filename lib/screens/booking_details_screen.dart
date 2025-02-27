@@ -3,15 +3,20 @@ import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'location_picker_screen.dart';
 import 'payment_screen.dart';
+import 'order_status_screen.dart'; // Add this import
 
 class BookingDetailsScreen extends StatefulWidget {
   final String serviceName;
   final double amount;
+  final String serviceType; // Add this
+  final String description; // Add this
 
   const BookingDetailsScreen({
     Key? key,
     required this.serviceName,
     required this.amount,
+    this.serviceType = '', // Default value
+    this.description = '', // Default value
   }) : super(key: key);
 
   @override
@@ -286,11 +291,42 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
             // Pay Order Button
             ElevatedButton(
               onPressed: () {
+                if (selectedDate == null ||
+                    selectedTime == null ||
+                    selectedAddress == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please fill in all required fields'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                // Debug prints to verify data
+                print('Service Type: ${widget.serviceType}');
+                print('Description: ${widget.description}');
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => PaymentScreen(
                       amount: widget.amount,
+                      onPaymentSuccess: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OrderStatusScreen(
+                              address: selectedAddress!,
+                              serviceType: widget.serviceType,
+                              jobRole: widget.serviceName,
+                              selectedDate: selectedDate!,
+                              selectedTime: selectedTime!,
+                              description: widget.description,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 );

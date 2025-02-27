@@ -1,7 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class OrderStatusScreen extends StatelessWidget {
-  const OrderStatusScreen({Key? key}) : super(key: key);
+  final String address;
+  final String serviceType;
+  final String jobRole;
+  final DateTime selectedDate;
+  final TimeOfDay selectedTime;
+  final String description;
+
+  const OrderStatusScreen({
+    Key? key,
+    required this.address,
+    required this.serviceType,
+    required this.jobRole,
+    required this.selectedDate,
+    required this.selectedTime,
+    required this.description,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -62,20 +78,37 @@ class OrderStatusScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Address Section
-              _buildInfoSection('Address:', ''),
+              // Address Section with actual address
+              _buildInfoSection(
+                'Address:',
+                address,
+              ),
 
-              // Service Type Section
-              _buildInfoSection('Service Type:', ''),
+              // Service Type Section with null check
+              _buildInfoSection(
+                'Service Type:',
+                serviceType.isNotEmpty ? serviceType : 'Not specified',
+              ),
 
               // Job Role Section
-              _buildInfoSection('Job Role', ''),
+              _buildInfoSection(
+                'Job Role:',
+                jobRole,
+              ),
 
-              // Order Date Section
-              _buildInfoSection('Order Date', ''),
+              // Order Date Section with formatted date and time
+              _buildInfoSection(
+                'Order Date:',
+                '${DateFormat('MMM d, yyyy').format(selectedDate)} at ${selectedTime.format(context)}',
+              ),
 
-              // Details Section
-              _buildInfoSection('Details', ''),
+              // Details Section with description
+              _buildInfoSection(
+                'Details:',
+                description.isNotEmpty
+                    ? description
+                    : 'No description provided',
+              ),
 
               // Attachments Section
               _buildInfoSection('Attachments', ''),
@@ -136,7 +169,8 @@ class OrderStatusScreen extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: () {
                         // Navigate to home screen
-                        Navigator.of(context).popUntil((route) => route.isFirst);
+                        Navigator.of(context)
+                            .popUntil((route) => route.isFirst);
                       },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -153,7 +187,8 @@ class OrderStatusScreen extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () {
                         // Navigate to home screen
-                        Navigator.of(context).popUntil((route) => route.isFirst);
+                        Navigator.of(context)
+                            .popUntil((route) => route.isFirst);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue[900],
@@ -196,7 +231,7 @@ class OrderStatusScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            content,
+            content.isNotEmpty ? content : 'No description provided',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,

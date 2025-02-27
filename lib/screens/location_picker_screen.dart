@@ -132,68 +132,114 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     );
   }
 
-  Future<void> _requestLocationPermission() async {
+  Future<bool> _requestLocationPermission() async {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Location permissions are required')),
-        );
-        return;
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Location permissions are required')),
+          );
+        }
+        return false;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Location permissions are permanently denied'),
-        ),
-      );
-      return;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Location permissions are permanently denied'),
+            action: SnackBarAction(
+              label: 'Settings',
+              onPressed: () => Geolocator.openAppSettings(),
+            ),
+          ),
+        );
+      }
+      return false;
     }
+
+    return true;
   }
 
   void _toggleLocationTracking() async {
     if (!_isTracking) {
-      await _requestLocationPermission();
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Location services are disabled'),
+              action: SnackBarAction(
+                label: 'Settings',
+                onPressed: () => Geolocator.openLocationSettings(),
+              ),
+            ),
+          );
+        }
+        return;
+      }
 
-      setState(() => _isTracking = true);
-
-      const locationSettings = LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
-        timeLimit: null,
-      );
+      final hasPermission = await _requestLocationPermission();
+      if (!hasPermission) return;
 
       try {
-        final Position position = await Geolocator.getCurrentPosition();
-        final currentLocation = LatLng(position.latitude, position.longitude);
+        setState(() => _isTracking = true);
 
-        if (mounted) {
-          setState(() => _currentLocation = currentLocation);
-          if (_isWithinSriLanka(currentLocation)) {
-            _mapController.move(currentLocation, _mapController.camera.zoom);
-          }
+        // Get initial position
+        final position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+
+        if (!mounted) return;
+
+        final currentLocation = LatLng(position.latitude, position.longitude);
+        setState(() => _currentLocation = currentLocation);
+
+        if (_isWithinSriLanka(currentLocation)) {
+          _mapController.move(currentLocation, 15.0);
         }
 
+        // Start position stream
+        _positionStreamSubscription
+            ?.cancel(); // Cancel any existing subscription
         _positionStreamSubscription = Geolocator.getPositionStream(
-          locationSettings: locationSettings,
-        ).listen((Position position) {
-          final newLocation = LatLng(position.latitude, position.longitude);
-          if (mounted && _isTracking) {
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 10,
+          ),
+        ).listen(
+          (Position position) {
+            if (!mounted || !_isTracking) return;
+
+            final newLocation = LatLng(position.latitude, position.longitude);
             setState(() => _currentLocation = newLocation);
+
             if (_isWithinSriLanka(newLocation)) {
               _mapController.move(newLocation, _mapController.camera.zoom);
             }
-          }
-        }, onError: (e) {
-          debugPrint('Error getting location updates: $e');
-          _stopTracking();
-        });
+          },
+          onError: (e) {
+            debugPrint('Location stream error: $e');
+            if (mounted) {
+              _stopTracking();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Error tracking location')),
+              );
+            }
+          },
+          cancelOnError: true,
+        );
       } catch (e) {
         debugPrint('Error starting location tracking: $e');
-        _stopTracking();
+        if (mounted) {
+          _stopTracking();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not get current location')),
+          );
+        }
       }
     } else {
       _stopTracking();
@@ -201,9 +247,11 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   }
 
   void _stopTracking() {
-    setState(() => _isTracking = false);
-    _positionStreamSubscription?.cancel();
-    _positionStreamSubscription = null;
+    if (_isTracking) {
+      setState(() => _isTracking = false);
+      _positionStreamSubscription?.cancel();
+      _positionStreamSubscription = null;
+    }
   }
 
   Future<void> _searchLocation(String query) async {
@@ -261,6 +309,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   void dispose() {
     _searchController.dispose();
     _stopTracking();
+    _positionStreamSubscription?.cancel();
     super.dispose();
   }
 

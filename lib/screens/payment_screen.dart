@@ -3,10 +3,12 @@ import 'payment_result_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double amount;
+  final VoidCallback onPaymentSuccess;
 
   const PaymentScreen({
     Key? key,
     required this.amount,
+    required this.onPaymentSuccess,
   }) : super(key: key);
 
   @override
@@ -19,11 +21,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   void _processPayment() {
     setState(() => _isProcessing = true);
-    
+
     // Simulate payment processing
     Future.delayed(const Duration(seconds: 2), () {
       setState(() => _isProcessing = false);
-      _showPaymentResult(true); // For now, always show success
+      _showPaymentResult(true);
     });
   }
 
@@ -33,7 +35,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
       isDismissible: false,
       enableDrag: false,
       backgroundColor: Colors.transparent,
-      builder: (context) => PaymentResultScreen(success: success),
+      builder: (context) => PaymentResultScreen(
+        success: success,
+        onSuccess: () {
+          Navigator.pop(context); // Close bottom sheet
+          widget.onPaymentSuccess(); // Call the success callback
+        },
+      ),
     );
   }
 
@@ -62,17 +70,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   borderRadius: BorderRadius.circular(12),
                   image: const DecorationImage(
                     image: NetworkImage(
-                      'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/visa%20card.png'
-                    ),
+                        'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/visa%20card.png'),
                     fit: BoxFit.cover,
                   ),
                 ),
               ),
               const SizedBox(height: 24),
-              
-              // Payment Methods
+
+              // Payment Methods Section
               const Text(
-                'or',
+                'or pay with',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.grey,
@@ -80,32 +87,39 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              
-              // PayPal
+
+              // Payment Options
               _buildPaymentOption(
                 'PayPal',
                 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/paypal.png',
                 'paypal',
               ),
               const SizedBox(height: 12),
-              
-              // Google Pay
               _buildPaymentOption(
                 'Google Pay',
                 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/googleplay.png',
                 'gpay',
               ),
               const SizedBox(height: 12),
-              
-              // Apple Pay
               _buildPaymentOption(
                 'Apple Pay',
                 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/applepay.png',
                 'applepay',
               ),
               const SizedBox(height: 32),
-              
-              // Pay Order Button
+
+              // Amount Display
+              Text(
+                'Total Amount: Rs ${widget.amount.toStringAsFixed(2)}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Pay Button
               ElevatedButton(
                 onPressed: _isProcessing ? null : _processPayment,
                 style: ElevatedButton.styleFrom(
@@ -121,11 +135,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                     : const Text(
-                        'Pay Order',
+                        'Pay Now',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

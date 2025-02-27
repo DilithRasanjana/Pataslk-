@@ -295,7 +295,12 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                               MaterialPageRoute(
                                 builder: (context) => BookingDetailsScreen(
                                   serviceName: widget.serviceName,
-                                  amount: 1000.00, // TODO: Replace with actual service amount
+                                  amount:
+                                      1000.00, // TODO: Replace with actual service amount
+                                  serviceType:
+                                      widget.serviceType, // Pass service type
+                                  description: _descriptionController
+                                      .text, // Pass description
                                 ),
                               ),
                             );

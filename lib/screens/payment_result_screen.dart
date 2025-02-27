@@ -3,10 +3,12 @@ import 'order_status_screen.dart';
 
 class PaymentResultScreen extends StatelessWidget {
   final bool success;
+  final VoidCallback? onSuccess;
 
   const PaymentResultScreen({
     Key? key,
     required this.success,
+    this.onSuccess,
   }) : super(key: key);
 
   @override
@@ -60,16 +62,9 @@ class PaymentResultScreen extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                // Close the bottom sheet
-                Navigator.pop(context);
-                // Navigate to order status screen
-                if (success) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const OrderStatusScreen(),
-                    ),
-                  );
+                Navigator.pop(context); // Close bottom sheet
+                if (success && onSuccess != null) {
+                  onSuccess!(); // Call success callback
                 }
               },
               style: ElevatedButton.styleFrom(
