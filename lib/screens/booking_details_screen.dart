@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
+import 'location_picker_screen.dart';
 import 'payment_screen.dart';
 
 class BookingDetailsScreen extends StatefulWidget {
@@ -20,6 +22,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
   bool showDetails = false;
+  LatLng? selectedLocation;
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -69,6 +72,20 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
     if (picked != null) {
       setState(() {
         selectedTime = picked;
+      });
+    }
+  }
+
+  Future<void> _selectLocation(BuildContext context) async {
+    final LatLng? result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const LocationPickerScreen(),
+      ),
+    );
+    if (result != null) {
+      setState(() {
+        selectedLocation = result;
       });
     }
   }
@@ -151,21 +168,26 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
             ),
             const SizedBox(height: 12),
             // Location Selection
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8FFB7),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.location_on),
-                  SizedBox(width: 12),
-                  Text(
-                    'Select your Location',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
+            InkWell(
+              onTap: () => _selectLocation(context),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8FFB7),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on),
+                    const SizedBox(width: 12),
+                    Text(
+                      selectedLocation != null
+                          ? 'Location: ${selectedLocation!.latitude.toStringAsFixed(4)}, ${selectedLocation!.longitude.toStringAsFixed(4)}'
+                          : 'Select your Location',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
               ),
             ),
             const Spacer(),
