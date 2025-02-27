@@ -23,6 +23,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   TimeOfDay? selectedTime;
   bool showDetails = false;
   LatLng? selectedLocation;
+  String? selectedAddress;
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -77,7 +78,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   }
 
   Future<void> _selectLocation(BuildContext context) async {
-    final LatLng? result = await Navigator.push(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const LocationPickerScreen(),
@@ -85,7 +86,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
     );
     if (result != null) {
       setState(() {
-        selectedLocation = result;
+        selectedLocation = result['coordinates'];
+        selectedAddress = result['address'];
       });
     }
   }
@@ -182,7 +184,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                     const SizedBox(width: 12),
                     Text(
                       selectedLocation != null
-                          ? 'Location: ${selectedLocation!.latitude.toStringAsFixed(4)}, ${selectedLocation!.longitude.toStringAsFixed(4)}'
+                          ? selectedAddress ?? 'Location selected'
                           : 'Select your Location',
                       style: const TextStyle(fontSize: 16),
                     ),
