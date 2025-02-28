@@ -10,8 +10,9 @@ class VerificationScreen extends StatefulWidget {
 }
 
 class _VerificationScreenState extends State<VerificationScreen> {
-  final List<TextEditingController> _controllers = List.generate(4, (index) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
+  final List<TextEditingController> _controllers =
+      List.generate(6, (index) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
   Timer? _timer;
   int _remainingTime = 30;
 
@@ -55,7 +56,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   void verifyCode() {
     String code = _controllers.map((controller) => controller.text).join();
-    if (code.length == 4) {
+    if (code.length == 6) {
       // TODO: Implement actual verification logic
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -63,7 +64,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      
+
       // Navigate to login page after successful verification
       Future.delayed(const Duration(seconds: 2), () {
         Navigator.of(context).pushReplacement(
@@ -74,10 +75,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
   }
 
   void _onTextChanged(String value, int index) {
-    if (value.length == 1 && index < 3) {
+    if (value.length == 1 && index < 5) {
       _focusNodes[index + 1].requestFocus();
     }
-    if (value.length == 1 && index == 3) {
+    if (value.length == 1 && index == 5) {
       verifyCode();
     }
   }
@@ -119,10 +120,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: List.generate(
-                4,
+                6,
                 (index) => SizedBox(
-                  width: 60,
-                  height: 60,
+                  width: 45,
+                  height: 55,
                   child: TextField(
                     controller: _controllers[index],
                     focusNode: _focusNodes[index],
@@ -138,7 +139,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
                       ),
                       filled: true,
                       fillColor: Colors.grey.shade100,
@@ -179,7 +181,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       ? 'Re-send code in ${_remainingTime.toString().padLeft(2, '0')}:00'
                       : 'Re-send code',
                   style: TextStyle(
-                    color: _remainingTime == 0 ? Theme.of(context).primaryColor : Colors.grey,
+                    color: _remainingTime == 0
+                        ? Theme.of(context).primaryColor
+                        : Colors.grey,
                   ),
                 ),
               ),

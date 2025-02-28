@@ -13,8 +13,8 @@ class ServiceProviderVerificationScreen extends StatefulWidget {
 class _ServiceProviderVerificationScreenState
     extends State<ServiceProviderVerificationScreen> {
   final List<TextEditingController> _controllers =
-      List.generate(4, (index) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
+      List.generate(6, (index) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
 
   @override
   void dispose() {
@@ -28,21 +28,20 @@ class _ServiceProviderVerificationScreenState
   }
 
   void _onCodeChanged(String value, int index) {
-    if (value.length == 1 && index < 3) {
+    if (value.length == 1 && index < 5) {
       _focusNodes[index + 1].requestFocus();
     }
     if (value.isEmpty && index > 0) {
       _focusNodes[index - 1].requestFocus();
     }
-    if (index == 3 && value.length == 1) {
+    if (index == 5 && value.length == 1) {
       _verifyCode();
     }
   }
 
   void _verifyCode() {
     String code = _controllers.map((controller) => controller.text).join();
-    if (code.length == 4) {
-      // Navigate to service provider login screen after verification
+    if (code.length == 6) {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
@@ -89,9 +88,9 @@ class _ServiceProviderVerificationScreenState
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: List.generate(
-                4,
+                6,
                 (index) => SizedBox(
-                  width: 60,
+                  width: 45,
                   child: TextField(
                     controller: _controllers[index],
                     focusNode: _focusNodes[index],
