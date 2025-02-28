@@ -66,11 +66,17 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             if (place.street?.isNotEmpty ?? false) place.street,
             if (place.subLocality?.isNotEmpty ?? false) place.subLocality,
             if (place.locality?.isNotEmpty ?? false) place.locality,
+            if (place.subAdministrativeArea?.isNotEmpty ?? false)
+              '${place.subAdministrativeArea} District', // Add District name
             if (place.administrativeArea?.isNotEmpty ?? false)
               place.administrativeArea,
             if (place.country?.isNotEmpty ?? false) place.country,
           ].where((element) => element != null).join(', ');
         });
+
+        // Debug print to verify the data
+        print('District: ${place.subAdministrativeArea}');
+        print('Full Address: $_address');
       }
     } catch (e) {
       debugPrint('Error getting address: $e');
