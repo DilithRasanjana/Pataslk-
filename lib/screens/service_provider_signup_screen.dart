@@ -7,13 +7,22 @@ class ServiceProviderSignupScreen extends StatefulWidget {
   const ServiceProviderSignupScreen({Key? key}) : super(key: key);
 
   @override
-  State<ServiceProviderSignupScreen> createState() => _ServiceProviderSignupScreenState();
+  State<ServiceProviderSignupScreen> createState() =>
+      _ServiceProviderSignupScreenState();
 }
 
-class _ServiceProviderSignupScreenState extends State<ServiceProviderSignupScreen> {
+class _ServiceProviderSignupScreenState
+    extends State<ServiceProviderSignupScreen> {
   final _formKey = GlobalKey<FormState>();
-  bool _isPasswordVisible = false;
-  bool _isConfirmPasswordVisible = false;
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,17 +61,36 @@ class _ServiceProviderSignupScreenState extends State<ServiceProviderSignupScree
                 ),
                 const SizedBox(height: 32),
 
-                // Name Field
+                // First Name Field
                 TextFormField(
+                  controller: _firstNameController,
                   decoration: InputDecoration(
-                    labelText: 'Full Name',
+                    labelText: 'First Name',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
+                      return 'Please enter your first name';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Last Name Field
+                TextFormField(
+                  controller: _lastNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Last Name',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your last name';
                     }
                     return null;
                   },
@@ -114,82 +142,6 @@ class _ServiceProviderSignupScreenState extends State<ServiceProviderSignupScree
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
-
-                // Occupation Field
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'Occupation',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your occupation';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Password Field
-                TextFormField(
-                  obscureText: !_isPasswordVisible,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _isPasswordVisible = !_isPasswordVisible;
-                        });
-                      },
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a password';
-                    }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Confirm Password Field
-                TextFormField(
-                  obscureText: !_isConfirmPasswordVisible,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm Password',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                        });
-                      },
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
-                    }
-                    return null;
-                  },
-                ),
                 const SizedBox(height: 32),
 
                 // Sign Up Button
@@ -199,7 +151,8 @@ class _ServiceProviderSignupScreenState extends State<ServiceProviderSignupScree
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ServiceProviderVerificationScreen(),
+                          builder: (context) =>
+                              const ServiceProviderVerificationScreen(),
                         ),
                       );
                     }
@@ -235,7 +188,8 @@ class _ServiceProviderSignupScreenState extends State<ServiceProviderSignupScree
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ServiceProviderLoginScreen(),
+                            builder: (context) =>
+                                const ServiceProviderLoginScreen(),
                           ),
                         );
                       },
