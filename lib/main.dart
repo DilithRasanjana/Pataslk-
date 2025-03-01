@@ -52,8 +52,8 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0D47A1),
       body: Center(
-        child: Image.network(
-          'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/logo%201.png',
+        child: Image.asset(
+          'assets/logo 1 (1).png',
           width: 200,
           height: 200,
           fit: BoxFit.contain,
