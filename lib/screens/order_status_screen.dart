@@ -19,8 +19,22 @@ class OrderStatusScreen extends StatelessWidget {
     required this.description,
   }) : super(key: key);
 
+  String _extractDistrict(String address) {
+    // Look for the word "District" in the address
+    final List<String> parts = address.split(',');
+    for (String part in parts) {
+      part = part.trim();
+      if (part.contains('District')) {
+        return part;
+      }
+    }
+    return 'District not specified';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final String district = _extractDistrict(address);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -82,6 +96,12 @@ class OrderStatusScreen extends StatelessWidget {
               _buildInfoSection(
                 'Address:',
                 address,
+              ),
+
+              // District Section (new)
+              _buildInfoSection(
+                'District:',
+                district,
               ),
 
               // Service Type Section with null check
