@@ -19,14 +19,15 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedIndex = index;
     });
-    
-    if (index == 1) { 
+
+    if (index == 1) {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => const ServicesScreen(),
         ),
       );
-    } else if (index == 3) { // Menu icon
+    } else if (index == 3) {
+      // Menu icon
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => const MenuScreen(),
@@ -44,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Bar with Menu and Profile
+              // Updated Top Bar with Logo
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
@@ -63,8 +64,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                         ),
                         const SizedBox(width: 8),
-                        Image.network(
-                          'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/logo%202.png',
+                        Image.asset(
+                          'assets/Assets-main/Assets-main/logo 2.png',
                           height: 40,
                         ),
                       ],
@@ -105,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // Search Bar
+              // Updated Search Bar
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Container(
@@ -118,19 +119,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       hintText: 'Search what you need...',
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(12.0),
-                        child: Image.network(
-                          'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/search%20icon.png',
+                        child: Image.asset(
+                          'assets/Assets-main/Assets-main/search icon.png',
                           height: 24,
                         ),
                       ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16),
                     ),
                   ),
                 ),
               ),
 
-              // Service Categories
+              // Updated Service Categories
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
@@ -138,17 +140,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     _buildServiceCategory(
                       'AC Repair',
-                      'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Ac%20Repair.png',
+                      'assets/Assets-main/Assets-main/Ac Repair.png',
                       const Color(0xFFFFE5D6),
                     ),
                     _buildServiceCategory(
                       'Beauty',
-                      'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Beauty.png',
+                      'assets/Assets-main/Assets-main/Beauty.png',
                       const Color(0xFFE4DEFF),
                     ),
                     _buildServiceCategory(
                       'Appliance',
-                      'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Appliance.png',
+                      'assets/Assets-main/Assets-main/Appliance.png',
                       const Color(0xFFDCF4FF),
                     ),
                     TextButton(
@@ -174,13 +176,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 24),
 
-              // First Offer Card
+              // Updated First Offer Card
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Offer.png',
+                  child: Image.asset(
+                    'assets/Assets-main/Assets-main/Offer.png',
                     width: double.infinity,
                     fit: BoxFit.cover,
                   ),
@@ -203,13 +205,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 16),
 
-              // Second Offer Card
+              // Updated Second Offer Card
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Offer%20Large.png',
+                  child: Image.asset(
+                    'assets/Assets-main/Assets-main/Offer Large.png',
                     width: double.infinity,
                     fit: BoxFit.cover,
                   ),
@@ -242,7 +244,8 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const NotificationScreen()),
                 );
               },
             ),
@@ -257,7 +260,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildServiceCategory(String title, String imageUrl, Color backgroundColor, {bool isLastItem = false}) {
+  // Update the service category builder to use Image.asset
+  Widget _buildServiceCategory(
+      String title, String imageUrl, Color backgroundColor,
+      {bool isLastItem = false}) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -277,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Image.network(
+              child: Image.asset(
                 imageUrl,
                 width: 45,
                 height: 45,

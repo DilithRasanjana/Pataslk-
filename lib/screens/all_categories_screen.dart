@@ -6,7 +6,7 @@ class AllCategoriesScreen extends StatelessWidget {
 
   Widget _buildCategoryButton({
     required String title,
-    required String imageUrl,
+    required String imageAsset,
     required Color backgroundColor,
     required VoidCallback onTap,
   }) {
@@ -22,8 +22,8 @@ class AllCategoriesScreen extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Center(
-              child: Image.network(
-                imageUrl,
+              child: Image.asset(
+                imageAsset,
                 width: 45,
                 height: 45,
                 fit: BoxFit.contain,
@@ -49,47 +49,47 @@ class AllCategoriesScreen extends StatelessWidget {
     final categories = [
       {
         'title': 'AC Repair',
-        'image': 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Ac%20Repair.png',
+        'image': 'assets/Assets-main/Assets-main/Ac Repair.png',
         'color': const Color(0xFFFFE5D9),
       },
       {
         'title': 'Beauty',
-        'image': 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Beauty.png',
+        'image': 'assets/Assets-main/Assets-main/Beauty.png',
         'color': const Color(0xFFE5E1FF),
       },
       {
         'title': 'Appliance',
-        'image': 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Appliance.png',
+        'image': 'assets/Assets-main/Assets-main/Appliance.png',
         'color': const Color(0xFFD9F2FF),
       },
       {
         'title': 'Painting',
-        'image': 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Painting.png',
+        'image': 'assets/Assets-main/Assets-main/Painting.png',
         'color': const Color(0xFFD9FFE5),
       },
       {
         'title': 'Cleaning',
-        'image': 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Cleaning.png',
+        'image': 'assets/Assets-main/Assets-main/Cleaning.png',
         'color': const Color(0xFFFFF3D9),
       },
       {
         'title': 'Plumbing',
-        'image': 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Plumbing.png',
+        'image': 'assets/Assets-main/Assets-main/Plumbing.png',
         'color': const Color(0xFFE5FFD9),
       },
       {
         'title': 'Electronics',
-        'image': 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Electronics.png',
+        'image': 'assets/Assets-main/Assets-main/Electronics.png',
         'color': const Color(0xFFFFD9D9),
       },
       {
         'title': 'Shifting',
-        'image': 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Shifting.png',
+        'image': 'assets/Assets-main/Assets-main/Shifting.png',
         'color': const Color(0xFFFFD9F2),
       },
       {
         'title': 'Men\'s Salon',
-        'image': 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Men\'s%20Salon.png',
+        'image': 'assets/Assets-main/Assets-main/Men\'s Salon.png',
         'color': const Color(0xFFD9E5FF),
       },
     ];
@@ -167,13 +167,15 @@ class AllCategoriesScreen extends StatelessWidget {
                   final category = categories[index];
                   return _buildCategoryButton(
                     title: category['title'] as String,
-                    imageUrl: category['image'] as String,
+                    imageAsset: category['image'] as String,
                     backgroundColor: category['color'] as Color,
                     onTap: () {
-                      if (category['title'] == 'Shifting' || category['title'] == 'Men\'s Salon') {
+                      if (category['title'] == 'Shifting' ||
+                          category['title'] == 'Men\'s Salon') {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('This service will be available in future updates'),
+                            content: Text(
+                                'This service will be available in future updates'),
                             duration: Duration(seconds: 2),
                             backgroundColor: Colors.orange,
                           ),

@@ -35,14 +35,17 @@ class ServicesScreen extends StatelessWidget {
             _buildEmptyState(
               'No Upcoming Orders',
               'Currently you don\'t have any upcoming orders.\nPlace and track your orders from here.',
+              'assets/Assets-main/Assets-main/service png.png',
             ),
             _buildEmptyState(
               'No History Order',
               'Currently you don\'t have any History order.\nPlace and track your orders from here.',
+              'assets/Assets-main/Assets-main/service png.png',
             ),
             _buildEmptyState(
               'No Draft Orders',
               'Currently you don\'t have any draft orders.\nPlace and track your orders from here.',
+              'assets/Assets-main/Assets-main/service png.png',
             ),
           ],
         ),
@@ -50,13 +53,13 @@ class ServicesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(String title, String subtitle) {
+  Widget _buildEmptyState(String title, String subtitle, String imagePath) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.network(
-            'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/service%20png.png',
+          Image.asset(
+            imagePath,
             height: 120,
             width: 120,
           ),

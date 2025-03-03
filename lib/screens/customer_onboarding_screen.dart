@@ -5,7 +5,8 @@ class CustomerOnboardingScreen extends StatefulWidget {
   const CustomerOnboardingScreen({super.key});
 
   @override
-  State<CustomerOnboardingScreen> createState() => _CustomerOnboardingScreenState();
+  State<CustomerOnboardingScreen> createState() =>
+      _CustomerOnboardingScreenState();
 }
 
 class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
@@ -46,15 +47,16 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                Image.network(
-                  'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Group%2034552.png',
+                Image.asset(
+                  'assets/Assets-main/Assets-main/Group 34552.png',
                   fit: BoxFit.contain,
                 ),
                 // Service tags overlay
                 Positioned(
                   top: 0,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: const Color(0xFF6B7280).withOpacity(0.8),
                       borderRadius: BorderRadius.circular(15),
@@ -85,7 +87,8 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => const LoginScreen()),
                   );
                 },
                 child: const Text(
@@ -130,8 +133,8 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                Image.network(
-                  'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Frame%2034616.png',
+                Image.asset(
+                  'assets/Assets-main/Assets-main/Frame 34616.png',
                   fit: BoxFit.contain,
                 ),
                 // Service tags
@@ -139,7 +142,8 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
                   top: -10,
                   left: 20,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.green,
                       borderRadius: BorderRadius.circular(15),
@@ -154,7 +158,8 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
                   top: 20,
                   right: 20,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.orange,
                       borderRadius: BorderRadius.circular(15),
@@ -169,7 +174,8 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
                   bottom: 20,
                   left: 30,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.orange.shade300,
                       borderRadius: BorderRadius.circular(15),
@@ -200,7 +206,8 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => const LoginScreen()),
                   );
                 },
                 child: const Text(
@@ -245,8 +252,8 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                Image.network(
-                  'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/Group%2034551.png',
+                Image.asset(
+                  'assets/Assets-main/Assets-main/Group 34551.png',
                   fit: BoxFit.contain,
                 ),
                 // Service tags
@@ -254,7 +261,8 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
                   top: 0,
                   left: 20,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.teal.shade200,
                       borderRadius: BorderRadius.circular(15),
@@ -269,7 +277,8 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
                   top: 30,
                   right: 20,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.pink.shade200,
                       borderRadius: BorderRadius.circular(15),
@@ -284,7 +293,8 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
                   bottom: 20,
                   left: 30,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.pink.shade100,
                       borderRadius: BorderRadius.circular(15),
@@ -299,7 +309,8 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
                   bottom: 40,
                   right: 20,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.pink.shade300,
                       borderRadius: BorderRadius.circular(15),

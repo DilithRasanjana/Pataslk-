@@ -22,8 +22,8 @@ class ReferFriendScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Image
-              Image.network(
-                'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/refer%20a%20friend.png',
+              Image.asset(
+                'assets/Assets-main/Assets-main/refer a friend.png',
                 height: 300,
                 fit: BoxFit.contain,
               ),

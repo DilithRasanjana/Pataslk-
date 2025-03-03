@@ -17,10 +17,10 @@ class LoginScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 60),
-              // Logo
+              // Use the second logo for login screen
               Center(
-                child: Image.network(
-                  'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/logo%202.png',
+                child: Image.asset(
+                  'assets/Assets-main/Assets-main/logo 2.png',
                   width: 100,
                   height: 100,
                   fit: BoxFit.contain,
@@ -59,8 +59,9 @@ class LoginScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Row(
                         children: [
-                          Image.network(
-                            'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/circle%201.png',
+                          // Updated Flag Image
+                          Image.asset(
+                            'assets/Assets-main/Assets-main/circle 1.png',
                             width: 24,
                             height: 24,
                           ),

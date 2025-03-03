@@ -23,19 +23,19 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
   String get _headerImage {
     switch (widget.serviceName) {
       case 'AC Repair':
-        return 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/ac%20repair.png';
+        return 'assets/Assets-main/Assets-main/ac repair.jpg';
       case 'Beauty':
-        return 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/beauty.jpg';
+        return 'assets/Assets-main/Assets-main/beauty.jpg';
       case 'Appliance':
-        return 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/applience%20service.jpg';
+        return 'assets/Assets-main/Assets-main/applience service.jpg';
       case 'Painting':
-        return 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/painting%20service.jpg';
+        return 'assets/Assets-main/Assets-main/painting service.jpg';
       case 'Cleaning':
-        return 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/cleaning%20service.jpg';
+        return 'assets/Assets-main/Assets-main/cleaning service.jpg';
       case 'Plumbing':
-        return 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/plumbing%20service.jpg';
+        return 'assets/Assets-main/Assets-main/plumbing service.jpg';
       case 'Electronics':
-        return 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/electrical%20service.jpg';
+        return 'assets/Assets-main/Assets-main/electrical service.jpg';
       default:
         return '';
     }
@@ -60,7 +60,8 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                   width: double.infinity,
                   decoration: BoxDecoration(
                     image: DecorationImage(
-                      image: NetworkImage(_headerImage),
+                      image: AssetImage(
+                          _headerImage), // Changed from NetworkImage to AssetImage
                       fit: BoxFit.cover,
                     ),
                   ),

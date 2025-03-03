@@ -61,7 +61,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildTextField(String hint, TextEditingController controller, {TextInputType? keyboardType}) {
+  Widget _buildTextField(String hint, TextEditingController controller,
+      {TextInputType? keyboardType}) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey[100],
@@ -73,7 +74,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         decoration: InputDecoration(
           hintText: hint,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
     );
@@ -123,7 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            
+
             // Profile Picture
             Center(
               child: GestureDetector(
@@ -209,8 +211,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           child: Row(
                             children: [
-                              Image.network(
-                                'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/circle%201.png',
+                              Image.asset(
+                                'assets/Assets-main/Assets-main/circle 1.png',
                                 width: 24,
                                 height: 24,
                               ),
@@ -227,7 +229,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _buildTextField('Phone number', _phoneController, keyboardType: TextInputType.phone),
+                          child: _buildTextField(
+                              'Phone number', _phoneController,
+                              keyboardType: TextInputType.phone),
                         ),
                       ],
                     ),
@@ -236,7 +240,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Email
                   _buildProfileField(
                     'E-mail',
-                    _buildTextField('Enter email', _emailController, keyboardType: TextInputType.emailAddress),
+                    _buildTextField('Enter email', _emailController,
+                        keyboardType: TextInputType.emailAddress),
                   ),
 
                   // Gender
@@ -276,7 +281,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     GestureDetector(
                       onTap: () => _selectDate(context),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
                           color: Colors.grey[100],
                           borderRadius: BorderRadius.circular(8),
@@ -287,13 +293,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Text(
                               _selectedDate == null
                                   ? 'Select date'
-                                  : DateFormat('dd/MM/yyyy').format(_selectedDate!),
+                                  : DateFormat('dd/MM/yyyy')
+                                      .format(_selectedDate!),
                               style: TextStyle(
-                                color: _selectedDate == null ? Colors.grey : Colors.black,
+                                color: _selectedDate == null
+                                    ? Colors.grey
+                                    : Colors.black,
                                 fontSize: 16,
                               ),
                             ),
-                            const Icon(Icons.calendar_today, color: Colors.grey),
+                            const Icon(Icons.calendar_today,
+                                color: Colors.grey),
                           ],
                         ),
                       ),

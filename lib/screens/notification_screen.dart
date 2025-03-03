@@ -62,8 +62,8 @@ class NotificationScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.network(
-              'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/No%20notofications.png',
+            Image.asset(
+              'assets/Assets-main/Assets-main/No notofications.png',
               width: 120,
               height: 120,
               fit: BoxFit.contain,

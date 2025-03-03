@@ -172,8 +172,8 @@ class _ServiceProviderProfileScreenState
                   'Phone Number',
                   Row(
                     children: [
-                      Image.network(
-                        'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/circle%201.png',
+                      Image.asset(
+                        'assets/Assets-main/Assets-main/circle 1.png', // Updated to use local asset
                         width: 24,
                         height: 24,
                       ),

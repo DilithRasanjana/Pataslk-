@@ -23,17 +23,17 @@ class WorkerOnboardingScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Worker Image
+              // Updated Worker Image to use local asset
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/worker.png',
+                child: Image.asset(
+                  'assets/Assets-main/Assets-main/worker.png',
                   height: 300,
                   fit: BoxFit.cover,
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // Title
               const Text(
                 'BECOME A WORKER WITH US?',
@@ -45,7 +45,7 @@ class WorkerOnboardingScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              
+
               // Subtitle
               const Text(
                 'Join Our Workforce Today',
@@ -61,21 +61,24 @@ class WorkerOnboardingScreen extends StatelessWidget {
               _buildBenefitItem(
                 icon: Icons.work,
                 title: 'Increased Job Opportunities',
-                description: 'Expand your client base and enjoy flexible working hours.',
+                description:
+                    'Expand your client base and enjoy flexible working hours.',
               ),
               const SizedBox(height: 24),
 
               _buildBenefitItem(
                 icon: Icons.star,
                 title: 'Enhanced Professional Reputation',
-                description: 'Build credibility through user reviews and showcase your work.',
+                description:
+                    'Build credibility through user reviews and showcase your work.',
               ),
               const SizedBox(height: 24),
 
               _buildBenefitItem(
                 icon: Icons.account_balance_wallet,
                 title: 'Convenient Business Management',
-                description: 'Enjoy a hassle-free payment process, with secure and direct earnings deposited into your account.',
+                description:
+                    'Enjoy a hassle-free payment process, with secure and direct earnings deposited into your account.',
               ),
               const SizedBox(height: 32),
 
@@ -120,7 +123,8 @@ class WorkerOnboardingScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ServiceProviderSignupScreen(),
+                          builder: (context) =>
+                              const ServiceProviderSignupScreen(),
                         ),
                       );
                     },

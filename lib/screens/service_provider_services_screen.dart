@@ -8,8 +8,8 @@ class ServiceProviderServicesScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.network(
-            'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/service%20png.png',
+          Image.asset(  // Changed from Image.network to Image.asset
+            'assets/Assets-main/Assets-main/service png.png',
             width: 120,
             height: 120,
           ),

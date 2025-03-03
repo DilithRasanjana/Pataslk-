@@ -37,8 +37,8 @@ class ServiceProviderHomeScreen extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: CircleAvatar(
               backgroundColor: Colors.transparent,
-              child: Image.network(
-                'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/logo%202.png',
+              child: Image.asset(
+                'assets/Assets-main/Assets-main/logo 2.png', // Updated logo path
                 width: 32,
                 height: 32,
               ),
@@ -95,8 +95,8 @@ class ServiceProviderHomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   Center(
-                    child: Image.network(
-                      'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/service%20pro%20home.png',
+                    child: Image.asset(
+                      'assets/Assets-main/Assets-main/service pro home.png', // Updated home image
                       height: 200,
                       fit: BoxFit.contain,
                     ),
@@ -120,8 +120,8 @@ class ServiceProviderHomeScreen extends StatelessWidget {
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(12),
                       ),
-                      child: Image.network(
-                        'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/plumbing%20service.jpg',
+                      child: Image.asset(
+                        'assets/Assets-main/Assets-main/plumbing service.jpg', // Updated plumbing service image
                         height: 200,
                         width: double.infinity,
                         fit: BoxFit.cover,
@@ -210,7 +210,8 @@ class ServiceProviderHomeScreen extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const ServiceProviderOrderDetailScreen(),
+                                  builder: (context) =>
+                                      const ServiceProviderOrderDetailScreen(),
                                 ),
                               );
                             },
@@ -274,14 +275,14 @@ class ServiceProviderHomeScreen extends StatelessWidget {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Image.network(
-              'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/service%20png.png',
+            icon: Image.asset(
+              'assets/Assets-main/Assets-main/service png.png', // Updated services icon
               width: 24,
               height: 24,
               color: Colors.grey,
             ),
-            activeIcon: Image.network(
-              'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/service%20png.png',
+            activeIcon: Image.asset(
+              'assets/Assets-main/Assets-main/service png.png', // Updated services active icon
               width: 24,
               height: 24,
               color: const Color(0xFF0D47A1),

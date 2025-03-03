@@ -7,10 +7,12 @@ class ServiceProviderLoginScreen extends StatefulWidget {
   const ServiceProviderLoginScreen({Key? key}) : super(key: key);
 
   @override
-  State<ServiceProviderLoginScreen> createState() => _ServiceProviderLoginScreenState();
+  State<ServiceProviderLoginScreen> createState() =>
+      _ServiceProviderLoginScreenState();
 }
 
-class _ServiceProviderLoginScreenState extends State<ServiceProviderLoginScreen> {
+class _ServiceProviderLoginScreenState
+    extends State<ServiceProviderLoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
 
   Widget _buildSocialButton(IconData icon, VoidCallback onTap) {
@@ -45,8 +47,8 @@ class _ServiceProviderLoginScreenState extends State<ServiceProviderLoginScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: Image.network(
-                  'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/logo%202.png',
+                child: Image.asset(
+                  'assets/Assets-main/Assets-main/logo 2.png', // Updated to use local asset
                   height: 120,
                 ),
               ),
@@ -80,8 +82,8 @@ class _ServiceProviderLoginScreenState extends State<ServiceProviderLoginScreen>
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
-                          Image.network(
-                            'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/circle%201.png',
+                          Image.asset(
+                            'assets/Assets-main/Assets-main/circle 1.png', // Updated to use local asset
                             width: 24,
                             height: 24,
                           ),
@@ -200,7 +202,8 @@ class _ServiceProviderLoginScreenState extends State<ServiceProviderLoginScreen>
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ServiceProviderSignupScreen(),
+                          builder: (context) =>
+                              const ServiceProviderSignupScreen(),
                         ),
                       );
                     },

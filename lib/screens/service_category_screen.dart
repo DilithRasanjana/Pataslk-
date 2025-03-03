@@ -12,7 +12,7 @@ class ServiceCategoryScreen extends StatelessWidget {
   Widget _buildServiceOption({
     required String title,
     required String description,
-    required String imageUrl,
+    required String imageAsset, // Changed from imageUrl to imageAsset
     required VoidCallback onTap,
   }) {
     return Padding(
@@ -54,8 +54,9 @@ class ServiceCategoryScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                Image.network(
-                  imageUrl,
+                Image.asset(
+                  // Changed from Image.network to Image.asset
+                  imageAsset,
                   width: 100,
                   height: 100,
                   fit: BoxFit.contain,
@@ -97,8 +98,9 @@ class ServiceCategoryScreen extends StatelessWidget {
               const SizedBox(height: 32),
               _buildServiceOption(
                 title: 'One-Day Service',
-                description: 'Quick, reliable help for single-day tasks or emergencies.',
-                imageUrl: 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/one%20day%20png.png',
+                description:
+                    'Quick, reliable help for single-day tasks or emergencies.',
+                imageAsset: 'assets/Assets-main/Assets-main/one day png.png',
                 onTap: () {
                   Navigator.push(
                     context,
@@ -113,8 +115,10 @@ class ServiceCategoryScreen extends StatelessWidget {
               ),
               _buildServiceOption(
                 title: 'Part-Time',
-                description: 'Flexible support for shorter commitments or recurring needs.',
-                imageUrl: 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/part%20time%20basis.png',
+                description:
+                    'Flexible support for shorter commitments or recurring needs.',
+                imageAsset:
+                    'assets/Assets-main/Assets-main/part time basis.png',
                 onTap: () {
                   Navigator.push(
                     context,
@@ -129,8 +133,9 @@ class ServiceCategoryScreen extends StatelessWidget {
               ),
               _buildServiceOption(
                 title: 'Contract Basis',
-                description: 'Long-term solutions tailored to your specific project or goals.',
-                imageUrl: 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/contract%20basis.png',
+                description:
+                    'Long-term solutions tailored to your specific project or goals.',
+                imageAsset: 'assets/Assets-main/Assets-main/contract basis.png',
                 onTap: () {
                   Navigator.push(
                     context,

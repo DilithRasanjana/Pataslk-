@@ -66,7 +66,40 @@ flutter:
   # Add assets section
   assets:
     - assets/
-    - assets/logo 1 (1).png
+    - assets/logo 1 (1).png # Keep this for splash screen
+    - assets/Assets-main/Assets-main/logo 2.png # Add this for login screen
+    - assets/Assets-main/Assets-main/Group 34552.png
+    - assets/Assets-main/Assets-main/Frame 34616.png
+    - assets/Assets-main/Assets-main/Group 34551.png
+    - assets/Assets-main/Assets-main/circle 1.png # Add this line for the flag
+    - assets/Assets-main/Assets-main/search icon.png
+    - assets/Assets-main/Assets-main/Ac Repair.png
+    - assets/Assets-main/Assets-main/Beauty.png
+    - assets/Assets-main/Assets-main/Appliance.png
+    - assets/Assets-main/Assets-main/Offer.png
+    - assets/Assets-main/Assets-main/Offer Large.png
+    - assets/Assets-main/Assets-main/No notofications.png
+    - assets/Assets-main/Assets-main/refer a friend.png
+    - assets/Assets-main/Assets-main/Painting.png
+    - assets/Assets-main/Assets-main/Cleaning.png
+    - assets/Assets-main/Assets-main/Plumbing.png
+    - assets/Assets-main/Assets-main/Electronics.png
+    - assets/Assets-main/Assets-main/Shifting.png
+    - assets/Assets-main/Assets-main/Men's Salon.png
+    - assets/Assets-main/Assets-main/one day png.png
+    - assets/Assets-main/Assets-main/part time basis.png
+    - assets/Assets-main/Assets-main/contract basis.png
+    - assets/Assets-main/Assets-main/ac repair.jpg
+    - assets/Assets-main/Assets-main/beauty.jpg
+    - assets/Assets-main/Assets-main/applience service.jpg
+    - assets/Assets-main/Assets-main/painting service.jpg
+    - assets/Assets-main/Assets-main/cleaning service.jpg
+    - assets/Assets-main/Assets-main/plumbing service.jpg
+    - assets/Assets-main/Assets-main/electrical service.jpg
+    - assets/Assets-main/Assets-main/service png.png # Add service icon for empty states
+    - assets/Assets-main/Assets-main/worker.png # Add worker image for onboarding
+    - assets/Assets-main/Assets-main/service pro home.png # Add service provider home image
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:
