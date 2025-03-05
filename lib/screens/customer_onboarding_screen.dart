@@ -91,9 +91,21 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
                         builder: (context) => const LoginScreen()),
                   );
                 },
+                style: TextButton.styleFrom(
+                  backgroundColor: const Color(0xFF0D47A1),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
                 child: const Text(
                   'Skip',
-                  style: TextStyle(color: Colors.grey),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                  ),
                 ),
               ),
               ElevatedButton(
@@ -210,9 +222,21 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
                         builder: (context) => const LoginScreen()),
                   );
                 },
+                style: TextButton.styleFrom(
+                  backgroundColor: const Color(0xFF0D47A1),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
                 child: const Text(
                   'Skip',
-                  style: TextStyle(color: Colors.grey),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                  ),
                 ),
               ),
               ElevatedButton(
