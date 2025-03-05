@@ -140,6 +140,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     setState(() {
                       _profileImage = result;
                     });
+                    // Add a success message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Profile photo updated successfully'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
                   }
                 },
                 child: Stack(

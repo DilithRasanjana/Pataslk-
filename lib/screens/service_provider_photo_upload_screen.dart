@@ -1,13 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
-class ServiceProviderPhotoUploadScreen extends StatelessWidget {
+class ServiceProviderPhotoUploadScreen extends StatefulWidget {
   const ServiceProviderPhotoUploadScreen({Key? key}) : super(key: key);
 
-  void _showFutureUpdateMessage(BuildContext context) {
+  @override
+  State<ServiceProviderPhotoUploadScreen> createState() =>
+      _ServiceProviderPhotoUploadScreenState();
+}
+
+class _ServiceProviderPhotoUploadScreenState
+    extends State<ServiceProviderPhotoUploadScreen> {
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(source: source);
+      if (pickedFile != null) {
+        setState(() {
+          _image = File(pickedFile.path);
+        });
+        _showMessage('Photo selected successfully');
+      }
+    } catch (e) {
+      _showMessage('Error selecting photo');
+    }
+  }
+
+  void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('This feature will be available in future updates'),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.blue[900],
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -32,9 +59,17 @@ class ServiceProviderPhotoUploadScreen extends StatelessWidget {
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: ElevatedButton(
-              onPressed: () => _showFutureUpdateMessage(context),
+              onPressed: () {
+                if (_image != null) {
+                  _showMessage('Photo saved successfully');
+                  Navigator.of(context).pop(_image);
+                } else {
+                  _showMessage('Please select an image first');
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue[900],
                 shape: RoundedRectangleBorder(
@@ -65,11 +100,21 @@ class ServiceProviderPhotoUploadScreen extends StatelessWidget {
                   color: Colors.grey[200],
                   borderRadius: BorderRadius.circular(100),
                 ),
-                child: Icon(
-                  Icons.person,
-                  size: 100,
-                  color: Colors.grey[400],
-                ),
+                child: _image != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(100),
+                        child: Image.file(
+                          _image!,
+                          width: 200,
+                          height: 200,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : Icon(
+                        Icons.person,
+                        size: 100,
+                        color: Colors.grey[400],
+                      ),
               ),
             ),
             const SizedBox(height: 40),
@@ -77,14 +122,14 @@ class ServiceProviderPhotoUploadScreen extends StatelessWidget {
               context,
               icon: Icons.photo_library,
               text: 'Choose from Gallery',
-              onTap: () => _showFutureUpdateMessage(context),
+              onTap: () => _pickImage(ImageSource.gallery),
             ),
             const SizedBox(height: 16),
             _buildOptionButton(
               context,
               icon: Icons.camera_alt,
               text: 'Take Photo',
-              onTap: () => _showFutureUpdateMessage(context),
+              onTap: () => _pickImage(ImageSource.camera),
             ),
           ],
         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:multi_select_flutter/multi_select_flutter.dart';
 import 'service_provider_photo_upload_screen.dart';
+import 'dart:io';
 
 class ServiceProviderProfileScreen extends StatefulWidget {
   const ServiceProviderProfileScreen({Key? key}) : super(key: key);
@@ -21,6 +22,7 @@ class _ServiceProviderProfileScreenState
   String? _selectedOccupation;
   DateTime? _selectedDate;
   List<String> _selectedDistricts = [];
+  File? _profileImage;
 
   final List<String> _genders = ['Male', 'Female'];
   final List<String> _occupations = [
@@ -132,23 +134,60 @@ class _ServiceProviderProfileScreenState
                   child: Column(
                     children: [
                       GestureDetector(
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          final File? result = await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
                                   const ServiceProviderPhotoUploadScreen(),
                             ),
                           );
+                          if (result != null) {
+                            setState(() {
+                              _profileImage = result;
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content:
+                                    Text('Profile photo updated successfully'),
+                                backgroundColor: Colors.blue,
+                              ),
+                            );
+                          }
                         },
-                        child: const CircleAvatar(
-                          radius: 40,
-                          backgroundColor: Colors.white,
-                          child: Icon(
-                            Icons.person,
-                            size: 50,
-                            color: Colors.blue,
-                          ),
+                        child: Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 40,
+                              backgroundColor: Colors.grey[200],
+                              backgroundImage: _profileImage != null
+                                  ? FileImage(_profileImage!)
+                                  : null,
+                              child: _profileImage == null
+                                  ? const Icon(
+                                      Icons.person,
+                                      size: 50,
+                                      color: Colors.blue,
+                                    )
+                                  : null,
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue[900],
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.edit,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 12),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class EditPhotoScreen extends StatefulWidget {
   const EditPhotoScreen({super.key});
@@ -8,7 +10,22 @@ class EditPhotoScreen extends StatefulWidget {
 }
 
 class _EditPhotoScreenState extends State<EditPhotoScreen> {
-  bool _showSuccess = false;
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(source: source);
+      if (pickedFile != null) {
+        setState(() {
+          _image = File(pickedFile.path);
+        });
+        _showMessage('Photo selected successfully');
+      }
+    } catch (e) {
+      _showMessage('Error selecting photo');
+    }
+  }
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -73,6 +90,24 @@ class _EditPhotoScreenState extends State<EditPhotoScreen> {
             fontWeight: FontWeight.w500,
           ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              if (_image != null) {
+                Navigator.of(context).pop(_image);
+              } else {
+                _showMessage('Please select an image first');
+              }
+            },
+            child: const Text(
+              'Save',
+              style: TextStyle(
+                color: Color(0xFF0D47A1),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
       body: Center(
         child: Column(
@@ -81,22 +116,25 @@ class _EditPhotoScreenState extends State<EditPhotoScreen> {
             CircleAvatar(
               radius: 50,
               backgroundColor: Colors.grey[200],
-              child: const Icon(
-                Icons.person,
-                size: 50,
-                color: Colors.grey,
-              ),
+              backgroundImage: _image != null ? FileImage(_image!) : null,
+              child: _image == null
+                  ? const Icon(
+                      Icons.person,
+                      size: 50,
+                      color: Colors.grey,
+                    )
+                  : null,
             ),
             const SizedBox(height: 24),
             _buildOptionButton(
               Icons.photo_library_outlined,
               'Choose from Gallery',
-              () => _showMessage('Gallery feature coming soon!'),
+              () => _pickImage(ImageSource.gallery),
             ),
             _buildOptionButton(
               Icons.camera_alt_outlined,
               'Take Photo',
-              () => _showMessage('Camera feature coming soon!'),
+              () => _pickImage(ImageSource.camera),
             ),
           ],
         ),
