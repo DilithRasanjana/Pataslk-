@@ -53,9 +53,9 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: const Color(0xFF0D47A1),
       body: Center(
         child: Image.asset(
-          'assets/logo 1 (1).png',
-          width: 130, // Changed from 200 to 150
-          height: 130, // Changed from 200 to 150
+          'assets/Patas.lk Logo-1.png', // Updated logo path
+          width: 130,
+          height: 130,
           fit: BoxFit.contain,
         ),
       ),

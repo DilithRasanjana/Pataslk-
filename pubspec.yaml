@@ -68,8 +68,8 @@ flutter:
   # Add assets section
   assets:
     - assets/
-    - assets/logo 1 (1).png # Keep this for splash screen
-    - assets/Assets-main/Assets-main/logo 2.png # Add this for login screen
+    - assets/Patas.lk Logo-1.png # Splash screen logo
+    - assets/Assets-main/Assets-main/logo 2.png
     - assets/Assets-main/Assets-main/Group 34552.png
     - assets/Assets-main/Assets-main/Frame 34616.png
     - assets/Assets-main/Assets-main/Group 34551.png
