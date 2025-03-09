@@ -12,4 +12,14 @@ class FirestoreHelper {
     await _firestore.collection(collection).doc(uid).set(data, SetOptions(merge: true));
   }
 
-
+  /// Checks if a user exists in [collection] with the given [email].
+  Future<bool> doesUserExist({
+    required String collection,
+    required String email,
+  }) async {
+    QuerySnapshot snapshot = await _firestore
+        .collection(collection)
+        .where('email', isEqualTo: email)
+        .get();
+    return snapshot.docs.isNotEmpty;
+  }
