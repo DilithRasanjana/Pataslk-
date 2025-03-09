@@ -1,0 +1,52 @@
+// Apply plugins in the correct order. Note that the Flutter plugin must be applied after Android and Kotlin plugins.
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'dev.flutter.flutter-gradle-plugin' // Flutter Gradle Plugin
+
+android {
+    namespace "com.example.pataslk"
+    compileSdk flutter.compileSdkVersion
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+        // Added flag to skip metadata version check
+        freeCompilerArgs += "-Xskip-metadata-version-check"
+    }
+
+    defaultConfig {
+        applicationId "com.example.pataslk"
+        // Changed minSdk value to meet the plugin requirement
+        minSdkVersion 23
+        targetSdk flutter.targetSdkVersion
+        versionCode flutter.versionCode
+        versionName flutter.versionName
+    }
+
+    buildTypes {
+        release {
+            // For release builds, you should set up your signing config.
+            // For now, using the debug signing config so that flutter run --release works.
+            signingConfig signingConfigs.debug
+        }
+    }
+}
+
+flutter {
+    source "../.."
+}
+
+dependencies {
+    // Import the Firebase Bill of Materials (BoM)
+    implementation platform("com.google.firebase:firebase-bom:33.10.0")
+    // Example Firebase dependency (analytics, for instance)
+    implementation "com.google.firebase:firebase-analytics"
+    // Add any other Firebase dependencies as needed. When using the BoM, you do not specify individual versions.
+}
+
+// Apply Firebase Google Services plugin at the bottom
+apply plugin: 'com.google.gms.google-services'
