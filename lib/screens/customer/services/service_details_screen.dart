@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'add_photos_screen.dart';
-import 'booking_details_screen.dart';
+import '../booking/booking_details_screen.dart';
 
 class ServiceDetailsScreen extends StatefulWidget {
   final String serviceName;

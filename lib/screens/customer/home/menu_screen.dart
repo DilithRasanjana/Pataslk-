@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'user_type_screen.dart';
+import '../../auth/user_type_screen.dart';
 import 'home_screen.dart';
-import 'profile_screen.dart';
-import 'rating_screen.dart';
-import 'refer_friend_screen.dart';
+import '../profile/profile_screen.dart';
+import '../ratings/rating_screen.dart';
+import '../referral/refer_friend_screen.dart';
 import 'contact_us_screen.dart';
 import 'notification_screen.dart';
-import 'payment_methods_screen.dart';
+import '../payment/payment_methods_screen.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});

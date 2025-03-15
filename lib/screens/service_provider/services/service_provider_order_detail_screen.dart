@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'service_provider_home_screen.dart';
+import '../home/service_provider_home_screen.dart';
 
 class ServiceProviderOrderDetailScreen extends StatelessWidget {
   const ServiceProviderOrderDetailScreen({Key? key}) : super(key: key);
@@ -55,7 +55,8 @@ class ServiceProviderOrderDetailScreen extends StatelessWidget {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ServiceProviderHomeScreen(),
+                          builder: (context) =>
+                              const ServiceProviderHomeScreen(),
                         ),
                         (route) => false,
                       );
@@ -143,7 +144,8 @@ class ServiceProviderOrderDetailScreen extends StatelessWidget {
               const SizedBox(height: 24),
               Row(
                 children: [
-                  const Icon(Icons.calendar_today, color: Colors.grey, size: 20),
+                  const Icon(Icons.calendar_today,
+                      color: Colors.grey, size: 20),
                   const SizedBox(width: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,7 +279,8 @@ class ServiceProviderOrderDetailScreen extends StatelessWidget {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ServiceProviderHomeScreen(),
+                            builder: (context) =>
+                                const ServiceProviderHomeScreen(),
                           ),
                         );
                       },

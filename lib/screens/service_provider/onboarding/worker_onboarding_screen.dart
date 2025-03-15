@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'service_provider_login_screen.dart';
-import 'service_provider_signup_screen.dart';
+import '../../auth/service_provider_login_screen.dart';
+import '../../auth/service_provider_signup_screen.dart';
 
 class WorkerOnboardingScreen extends StatelessWidget {
   const WorkerOnboardingScreen({Key? key}) : super(key: key);

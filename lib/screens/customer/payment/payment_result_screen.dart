@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'order_status_screen.dart';
+import '../booking/order_status_screen.dart';
 
 class PaymentResultScreen extends StatelessWidget {
   final bool success;

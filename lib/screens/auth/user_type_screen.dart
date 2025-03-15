@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'customer_onboarding_screen.dart';
-import 'worker_onboarding_screen.dart';
+import '../customer/customer_onboarding_screen.dart';
+import '../service_provider/onboarding/worker_onboarding_screen.dart';
 
 class UserTypeScreen extends StatelessWidget {
   const UserTypeScreen({super.key});

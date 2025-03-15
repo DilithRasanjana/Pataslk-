@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'screens/user_type_screen.dart';
+import 'screens/auth/user_type_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();

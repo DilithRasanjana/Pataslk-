@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'service_provider_menu_screen.dart';
 import 'service_provider_notification_screen.dart';
-import 'service_provider_order_detail_screen.dart';
-import 'service_provider_services_screen.dart';
+import '../services/service_provider_order_detail_screen.dart';
+import '../services/service_provider_services_screen.dart';
 
 class ServiceProviderHomeScreen extends StatelessWidget {
   const ServiceProviderHomeScreen({Key? key}) : super(key: key);

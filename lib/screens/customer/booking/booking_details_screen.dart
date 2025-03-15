@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
-import 'location_picker_screen.dart';
-import 'payment_screen.dart';
+import '../location/location_picker_screen.dart';
+import '../payment/payment_screen.dart';
 import 'order_status_screen.dart'; // Add this import
 
 class BookingDetailsScreen extends StatefulWidget {

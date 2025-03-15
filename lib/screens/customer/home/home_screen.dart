@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'menu_screen.dart';
 import 'notification_screen.dart';
-import 'all_categories_screen.dart';
-import 'service_category_screen.dart';
-import 'services_screen.dart';
+import '../services/all_categories_screen.dart';
+import '../services/service_category_screen.dart';
+import '../services_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'service_provider_home_screen.dart';
 import 'service_provider_notification_screen.dart';
-import 'service_provider_profile_screen.dart';
-import 'service_provider_rating_screen.dart';
+import '../profile/service_provider_profile_screen.dart';
+import '../ratings/service_provider_rating_screen.dart';
 import 'service_provider_support_screen.dart';
-import 'user_type_screen.dart';
+import '../../auth/user_type_screen.dart';
 
 class ServiceProviderMenuScreen extends StatelessWidget {
   const ServiceProviderMenuScreen({Key? key}) : super(key: key);
@@ -119,7 +119,8 @@ class ServiceProviderMenuScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ServiceProviderProfileScreen(),
+                      builder: (context) =>
+                          const ServiceProviderProfileScreen(),
                     ),
                   );
                 },
@@ -160,7 +161,8 @@ class ServiceProviderMenuScreen extends StatelessWidget {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ServiceProviderHomeScreen(),
+                            builder: (context) =>
+                                const ServiceProviderHomeScreen(),
                           ),
                         );
                       },
@@ -171,7 +173,8 @@ class ServiceProviderMenuScreen extends StatelessWidget {
                       onTap: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Advertisement feature will be available in future updates!'),
+                            content: Text(
+                                'Advertisement feature will be available in future updates!'),
                             duration: Duration(seconds: 2),
                             backgroundColor: Color(0xFF0D47A1),
                           ),
@@ -185,7 +188,8 @@ class ServiceProviderMenuScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ServiceProviderNotificationScreen(),
+                            builder: (context) =>
+                                const ServiceProviderNotificationScreen(),
                           ),
                         );
                       },
@@ -197,7 +201,8 @@ class ServiceProviderMenuScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ServiceProviderRatingScreen(),
+                            builder: (context) =>
+                                const ServiceProviderRatingScreen(),
                           ),
                         );
                       },
@@ -209,7 +214,8 @@ class ServiceProviderMenuScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ServiceProviderSupportScreen(),
+                            builder: (context) =>
+                                const ServiceProviderSupportScreen(),
                           ),
                         );
                       },

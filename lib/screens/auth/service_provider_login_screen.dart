@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'service_provider_home_screen.dart';
+import '../service_provider/home/service_provider_home_screen.dart';
 import 'service_provider_signup_screen.dart';
 
 class ServiceProviderLoginScreen extends StatefulWidget {
