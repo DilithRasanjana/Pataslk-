@@ -1,9 +1,17 @@
+// Firebase Firestore package for database operations
+import 'package:cloud_firestore/cloud_firestore.dart';
+// Firebase Authentication package for user authentication
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'menu_screen.dart';
 import 'notification_screen.dart';
 import '../services/all_categories_screen.dart';
 import '../services/service_category_screen.dart';
 import '../services_screen.dart';
+import '../profile/profile_screen.dart'; // Add import for profile screen
+// Helper utility for Firebase Firestore operations
+import '../../../utils/firebase_firestore_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,32 +21,84 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // Firebase Firestore helper instance
+  final FirestoreHelper _firestoreHelper = FirestoreHelper();
+  // Firebase Authentication: Get current logged in user
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
   int _selectedIndex = 0;
+  int _unreadNotificationCount = 0;
+  // Firebase Firestore: Stream for real-time notification updates
+  Stream<QuerySnapshot>? _notificationStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _initNotificationStream();
+  }
+
+  void _initNotificationStream() {
+    if (_currentUser != null) {
+      // Firebase Firestore: Create real-time stream of unread notifications
+      _notificationStream = FirebaseFirestore.instance
+          .collection('notifications')
+          .where('userId', isEqualTo: _currentUser!.uid)
+          .where('read', isEqualTo: false)
+          .snapshots();
+    }
+  }
 
   void _onItemTapped(int index) {
+    if (index == 2) { // Notification tab
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const NotificationScreen()),
+      );
+      return;
+    }
+    
     setState(() {
       _selectedIndex = index;
     });
-
     if (index == 1) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const ServicesScreen(),
-        ),
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ServicesScreen()),
       );
     } else if (index == 3) {
-      // Menu icon
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const MenuScreen(),
-        ),
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const CustomerMenuScreen()),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    if (_currentUser == null) {
+      return const Scaffold(
+        body: Center(child: Text('No user logged in.')),
+      );
+    }
+    // Firebase Firestore: Stream user data for real-time updates
+    return StreamBuilder<DocumentSnapshot>(
+      stream: _firestoreHelper.getUserStream(collection: 'customers', uid: _currentUser!.uid),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Scaffold(
+            body: Center(child: Text('Error fetching data.')),
+          );
+        }
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        // Firebase Firestore: Get user data from document snapshot
+        var userData = snapshot.data!.data() as Map<String, dynamic>;
+        var firstName = userData['firstName'] ?? 'User';
+        String? profileImageUrl = userData['profileImageUrl'];
+
+      return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
