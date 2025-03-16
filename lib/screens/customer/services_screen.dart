@@ -95,4 +95,83 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
   }
 
-
+/// Builds a list of bookings from Firestore for the current user, filtered by [statusList].
+  Widget _buildBookingsList({
+    required List<String> statusList,
+    required String emptyTitle,
+    required String emptySubtitle,
+  }) {
+    // Use a try-catch block with the query to handle index errors
+    try {
+      return StreamBuilder<QuerySnapshot>(
+        // Firebase Firestore real-time stream for bookings
+        stream: _getBookingsStream(statusList),
+        builder: (context, snapshot) {
+          // Handle Firestore index creation state
+          if (_indexError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Setting up bookings...',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'This may take a minute',
+                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                  ),
+                ],
+              ),
+            );
+          }
+          
+          // Handle Firestore query errors
+          if (snapshot.hasError) {
+            // Check for Firestore index error specifically
+            if (snapshot.error.toString().contains('FAILED_PRECONDITION') && 
+                snapshot.error.toString().contains('index')) {
+              // Set flag to show index creation message
+              if (!_indexError) {
+                setState(() {
+                  _indexError = true;
+                });
+              }
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Setting up bookings...',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'This may take a minute',
+                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                    ),
+                  ],
+                ),
+              );
+            }
+            
+            // Show other errors
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          }
+          
+          // Process Firestore query results
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            // Show empty state if no bookings found.
+            return _buildEmptyState(
+              emptyTitle,
+              emptySubtitle,
+              'assets/Assets-main/Assets-main/service png.png',
+            );
+          }
