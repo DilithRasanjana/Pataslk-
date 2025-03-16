@@ -59,6 +59,39 @@ class _ServiceProviderSignupScreenState extends State<ServiceProviderSignupScree
     return '+94$trimmed';
   }
 
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      // Firebase Firestore: Check if user with this email already exists
+      bool exists = await _firestoreHelper.doesUserExist(
+        collection: 'serviceProviders',
+        email: _emailController.text.trim(),
+      );
+      if (exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text("User already exists. Please sign in.")),
+        );
+        return;
+      }
+      
+      setState(() {
+        _isProcessing = true;
+      });
+      
+      String rawPhone = _phoneController.text;
+      if (!isValidPhone(rawPhone)) {
+        setState(() {
+          _isProcessing = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text("Please enter a valid 9-digit phone number")),
+        );
+        return;
+      }
+      
+      String fullPhone = formatPhoneNumber(rawPhone);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
