@@ -196,3 +196,32 @@ class _ServicesScreenState extends State<ServicesScreen> {
       );
     }
   }
+
+  /// Gets the stream for bookings with error handling for missing indexes
+  Stream<QuerySnapshot> _getBookingsStream(List<String> statusList) {
+    try {
+      // Try the original Firestore query with compound ordering and filtering
+      return FirebaseFirestore.instance
+          .collection('bookings')
+          .where('customer_id', isEqualTo: _currentUser!.uid)
+          .where('status', whereIn: statusList)
+          .orderBy('createdAt', descending: true)
+          .snapshots();
+    } catch (e) {
+      // If Firestore query fails due to missing index, use a simpler query as fallback
+      if (e.toString().contains('FAILED_PRECONDITION') && 
+          e.toString().contains('index')) {
+        setState(() {
+          _indexError = true;
+        });
+        
+        // Use a simpler Firestore query without the ordering
+        return FirebaseFirestore.instance
+            .collection('bookings')
+            .where('customer_id', isEqualTo: _currentUser!.uid)
+            .where('status', whereIn: statusList)
+            .snapshots();
+      }
+      rethrow;
+    }
+  }
