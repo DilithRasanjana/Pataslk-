@@ -1,23 +1,87 @@
+import 'dart:io';
+// Firebase Firestore for database operations
+import 'package:cloud_firestore/cloud_firestore.dart';
+// Firebase Authentication for user management
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:io';
-import 'edit_photo_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'edit_photo_screen.dart'; // Ensure you have an edit photo screen implemented
+// Firebase Firestore and Storage helper utilities
+import '../../../utils/firebase_firestore_helper.dart';
+import '../../../utils/firebase_storage_helper.dart';
 
-class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+class CustomerProfileScreen extends StatefulWidget {
+  const CustomerProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<CustomerProfileScreen> createState() => _CustomerProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
+  final _formKey = GlobalKey<FormState>();
+
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
-  String _selectedGender = 'Male';
+  String? _selectedGender;
   DateTime? _selectedDate;
   File? _profileImage;
+  String? _profileImageUrl;
+
+  final List<String> _genders = ['Male', 'Female'];
+
+  bool _isLoading = true;
+  // Firebase Authentication instance
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  // Firebase Firestore helper for database operations
+  final FirestoreHelper _firestoreHelper = FirestoreHelper();
+  // Firebase Storage helper for file operations
+  final FirebaseStorageHelper _storageHelper = FirebaseStorageHelper();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  /// Loads the current customer's profile from Firestore.
+  Future<void> _loadProfile() async {
+    // Get current authenticated user from Firebase
+    User? user = _auth.currentUser;
+    if (user != null) {
+      // Get user document from Firestore using helper
+      DocumentSnapshot doc = await _firestoreHelper
+          .getUserStream(collection: 'customers', uid: user.uid)
+          .first;
+      if (doc.exists) {
+        // Extract data from Firestore document
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        _firstNameController.text = data['firstName'] ?? '';
+        _lastNameController.text = data['lastName'] ?? '';
+        // Remove +94 prefix for editing.
+        if (data['phone'] != null) {
+          String phone = data['phone'];
+          _phoneController.text = phone.startsWith('+94') ? phone.substring(3) : phone;
+        }
+        _emailController.text = data['email'] ?? '';
+        _selectedGender = data['gender'] ?? _genders.first;
+        // Convert Firestore timestamp to DateTime
+        if (data['dob'] != null && data['dob'] is Timestamp) {
+          _selectedDate = (data['dob'] as Timestamp).toDate();
+        }
+        
+        // Load profile image URL from Firestore
+        setState(() {
+          _profileImageUrl = data['profileImageUrl'];
+        });
+      }
+    }
+    setState(() {
+      _isLoading = false;
+    });
+  }
 
   @override
   void dispose() {
