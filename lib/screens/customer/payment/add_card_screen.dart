@@ -131,6 +131,22 @@ class _AddCardScreenState extends State<AddCardScreen> {
     });
   }
 
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+  
   String? _validateCardNumber(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter card number';
