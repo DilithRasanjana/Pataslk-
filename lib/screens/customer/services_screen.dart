@@ -547,3 +547,44 @@ class _ServicesScreenState extends State<ServicesScreen> {
     final formattedDate = DateFormat('dd MMM').format(date);
     return timeStr.isNotEmpty ? '$timeStr,  $formattedDate' : DateFormat('hh:mm a,  dd MMM').format(date);
   }
+
+   /// Builds a small badge to display booking status (e.g. "Pending", "InProgress", "Completed").
+  Widget _buildStatusBadge(String status) {
+    Color badgeColor;
+    String text = status;
+
+    switch (status) {
+      case 'Pending':
+        badgeColor = Colors.orange;
+        break;
+      case 'InProgress':
+        badgeColor = Colors.blue;
+        text = 'In Progress';
+        break;
+      case 'PendingApproval':
+        badgeColor = Colors.amber;
+        text = 'Pending Approval';
+        break;
+      case 'Completed':
+        badgeColor = Colors.green;
+        break;
+      case 'Draft':
+        badgeColor = Colors.grey;
+        break;
+      default:
+        badgeColor = Colors.orange;
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: badgeColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+      ),
+    );
+  }
