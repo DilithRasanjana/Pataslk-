@@ -267,3 +267,28 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ),
     );
   }
+
+  // Update multiple Firebase documents in a single batch operation
+  Future<void> _markNotificationsAsRead(List<QueryDocumentSnapshot> notifications) async {
+    // Create a Firestore batch to handle multiple updates atomically
+    final batch = FirebaseFirestore.instance.batch();
+    
+    for (final doc in notifications) {
+      final notificationData = doc.data() as Map<String, dynamic>;
+      if (notificationData['read'] != true) {
+        // Add document update operation to batch
+        batch.update(doc.reference, {'read': true});
+      }
+    }
+    
+    // Commit all updates in a single batch write
+    await batch.commit();
+  }
+  
+  // Delete notification document from Firestore
+  Future<void> _deleteNotification(String notificationId) async {
+    await FirebaseFirestore.instance
+        .collection('notifications')
+        .doc(notificationId)
+        .delete();
+  }
