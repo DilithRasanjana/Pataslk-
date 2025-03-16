@@ -77,6 +77,17 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
 
+  Widget _buildSavedCard(DocumentSnapshot cardDoc) {
+    // Extract data from Firebase Firestore document
+    final cardData = cardDoc.data() as Map<String, dynamic>;
+    final cardType = _getCardType(cardData['cardNumber']);
+    final lastFourDigits = cardData['lastFourDigits'];
+    final cardholderName = cardData['cardholderName'];
+    final expiryDate = cardData['expiryDate'];
+    final isDefault = cardData['isDefault'] ?? false;
+    final cardId = cardDoc.id;
+
+    
   Widget _buildCreditCardOption() {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
