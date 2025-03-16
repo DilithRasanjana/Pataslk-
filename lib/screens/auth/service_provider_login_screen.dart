@@ -1,7 +1,17 @@
+// Firebase Firestore package for database operations
+import 'package:cloud_firestore/cloud_firestore.dart';
+// Firebase Authentication package for user authentication
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../service_provider/home/service_provider_home_screen.dart';
 import 'service_provider_signup_screen.dart';
+import 'service_provider_verification_screen.dart';
+// Helper utility for Firebase Authentication operations
+import '../../utils/firebase_auth_helper.dart';
+// Helper utility for Firestore database operations
+import '../../utils/firebase_firestore_helper.dart';
 
 class ServiceProviderLoginScreen extends StatefulWidget {
   const ServiceProviderLoginScreen({Key? key}) : super(key: key);
@@ -11,9 +21,20 @@ class ServiceProviderLoginScreen extends StatefulWidget {
       _ServiceProviderLoginScreenState();
 }
 
-class _ServiceProviderLoginScreenState
-    extends State<ServiceProviderLoginScreen> {
+class _ServiceProviderLoginScreenState extends State<ServiceProviderLoginScreen> {
   final TextEditingController _phoneController = TextEditingController();
+  // Firebase Authentication helper instance
+  final FirebaseAuthHelper _authHelper = FirebaseAuthHelper();
+  // Firebase Firestore helper instance
+  final FirestoreHelper _firestoreHelper = FirestoreHelper();
+  bool _isLoading = false;
+
+  /// Helper method to format phone number with country code.
+  String _formatPhoneNumber(String raw) {
+    // For simplicity, just prepend +94. (Ensure your raw number has 9 digits.)
+    return '+94' + raw.trim();
+  }
+
 
   Widget _buildSocialButton(IconData icon, VoidCallback onTap) {
     return InkWell(
