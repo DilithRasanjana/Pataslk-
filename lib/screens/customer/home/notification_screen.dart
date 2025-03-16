@@ -125,3 +125,145 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ),
     );
   }
+
+  Widget _buildNotificationCard({
+    required Map<String, dynamic> notification, 
+    required String notificationId
+  }) {
+    // Convert Firebase Timestamp to Dart DateTime
+    final DateTime createdAt = (notification['createdAt'] as Timestamp).toDate();
+    final String formattedTime = DateFormat('dd MMM, hh:mm a').format(createdAt);
+    final String title = notification['title'] ?? 'Notification';
+    final String message = notification['message'] ?? '';
+    final String type = notification['type'] ?? 'general';
+    final String? bookingId = notification['bookingId'];
+    
+    // Choose icon based on notification type
+    IconData notificationIcon;
+    Color iconColor;
+    
+    switch (type) {
+      case 'completed':
+        notificationIcon = Icons.check_circle;
+        iconColor = Colors.green;
+        break;
+      case 'inProgress':
+        notificationIcon = Icons.engineering;
+        iconColor = Colors.blue;
+        break;
+      case 'approval':
+        notificationIcon = Icons.pending_actions;
+        iconColor = Colors.orange;
+        break;
+      default:
+        notificationIcon = Icons.notifications;
+        iconColor = Colors.blue;
+    }
+    
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        onTap: () {
+          if (bookingId != null) {
+            _navigateToBookingDetails(bookingId);
+          }
+        },
+        contentPadding: const EdgeInsets.all(16),
+        leading: CircleAvatar(
+          backgroundColor: iconColor.withOpacity(0.1),
+          child: Icon(notificationIcon, color: iconColor),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 8),
+            Text(message),
+            const SizedBox(height: 8),
+            Text(
+              formattedTime,
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            ),
+          ],
+        ),
+        trailing: PopupMenuButton(
+          icon: const Icon(Icons.more_vert),
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              child: const Text('Delete'),
+              onTap: () {
+                _deleteNotification(notificationId);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/Assets-main/Assets-main/No notofications.png',
+            width: 120,
+            height: 120,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'No Notifications!',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'You don\'t have any notifications yet. Please\nplace order',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const ServicesScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D47A1),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 32,
+                vertical: 12,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'View all services',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
