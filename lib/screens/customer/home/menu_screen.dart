@@ -26,9 +26,7 @@ class CustomerMenuScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Container(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -41,55 +39,37 @@ class CustomerMenuScreen extends StatelessWidget {
                     color: Color(0xFFE67E22),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.logout,
-                    color: Colors.white,
-                    size: 32,
-                  ),
+                  child: const Icon(Icons.logout, color: Colors.white, size: 32),
                 ),
                 const SizedBox(height: 24),
                 const Text(
                   'Come back soon!',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.black87),
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Are you sure you want\nto logout?',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                    height: 1.5,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey, height: 1.5),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
+                    // Firebase Authentication: Sign out the user
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const UserTypeScreen()),
+                      MaterialPageRoute(builder: (context) => const UserTypeScreen()),
                       (route) => false,
                     );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0D47A1),
                     minimumSize: const Size(double.infinity, 48),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                   child: const Text(
                     'Yes, Logout',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -97,11 +77,7 @@ class CustomerMenuScreen extends StatelessWidget {
                   onPressed: () => Navigator.pop(context),
                   child: const Text(
                     'Cancel',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.red,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TextStyle(fontSize: 16, color: Colors.red, fontWeight: FontWeight.w500),
                   ),
                 ),
               ],
@@ -114,18 +90,10 @@ class CustomerMenuScreen extends StatelessWidget {
 
   Widget _buildMenuItem(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: Colors.white,
-        size: 24,
-      ),
+      leading: Icon(icon, color: Colors.white, size: 24),
       title: Text(
         title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
+        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
       ),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 24),
@@ -138,54 +106,77 @@ class CustomerMenuScreen extends StatelessWidget {
     final User? currentUser = FirebaseAuth.instance.currentUser;
     // Firebase Firestore: Helper for database operations
     final FirestoreHelper firestoreHelper = FirestoreHelper();
+
     return Scaffold(
       backgroundColor: const Color(0xFF0D47A1),
       body: SafeArea(
         child: Column(
           children: [
-            // Profile Section
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {
-                  debugPrint('Profile tapped'); // Debug print
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ProfileScreen(),
-                    ),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.white.withOpacity(0.2),
-                        child: const Icon(
-                          Icons.person,
-                          size: 40,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      const Text(
-                        'Your Name',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+            // Profile Section with fetched name and profile image from Firebase
+            StreamBuilder<DocumentSnapshot>(
+              // Firebase Firestore: Stream user profile for real-time updates
+              stream: firestoreHelper.getUserStream(
+                collection: _customersCollection,
+                uid: currentUser?.uid ?? '',
               ),
+              builder: (context, snapshot) {
+                String name = 'Your Name';
+                String? profileImageUrl;
+                
+                if (snapshot.hasData && snapshot.data!.exists) {
+                  // Firebase Firestore: Extract user data from document snapshot
+                  final data = snapshot.data!.data() as Map<String, dynamic>;
+                  name = data['firstName'] ?? name;
+                  profileImageUrl = data['profileImageUrl'];
+                }
+                
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const CustomerProfileScreen()),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 30,
+                            backgroundColor: Colors.white54,
+                            child: profileImageUrl != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(30),
+                                    child: CachedNetworkImage(
+                                      imageUrl: profileImageUrl,
+                                      fit: BoxFit.cover,
+                                      width: 60,
+                                      height: 60,
+                                      placeholder: (context, url) => const CircularProgressIndicator(
+                                        strokeWidth: 2.0,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                      errorWidget: (context, url, error) => 
+                                          const Icon(Icons.person, size: 40, color: Colors.white),
+                                    ),
+                                  )
+                                : const Icon(Icons.person, size: 40, color: Colors.white),
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            name,
+                            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }
             ),
-
             const SizedBox(height: 20),
-
             // Menu Items
             _buildMenuItem(
               Icons.home_outlined,
@@ -196,31 +187,26 @@ class CustomerMenuScreen extends StatelessWidget {
                 );
               },
             ),
-
             _buildMenuItem(
               Icons.payment_outlined,
               'Payments Methods',
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const PaymentMethodsScreen()),
+                  MaterialPageRoute(builder: (context) => const PaymentMethodsScreen()),
                 );
               },
             ),
-
             _buildMenuItem(
               Icons.notifications_outlined,
               'Notifications',
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const NotificationScreen()),
+                  MaterialPageRoute(builder: (context) => const NotificationScreen()),
                 );
               },
             ),
-
             _buildMenuItem(
               Icons.star_outline,
               'Rate',
@@ -231,49 +217,35 @@ class CustomerMenuScreen extends StatelessWidget {
                 );
               },
             ),
-
             _buildMenuItem(
               Icons.person_add_outlined,
               'Refer a Friend',
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const ReferFriendScreen()),
+                  MaterialPageRoute(builder: (context) => const ReferFriendScreen()),
                 );
               },
             ),
-
             _buildMenuItem(
               Icons.support_agent_outlined,
               'Support',
               () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const ContactUsScreen()),
+                  MaterialPageRoute(builder: (context) => const ContactUsScreen()),
                 );
               },
             ),
-
             const Spacer(),
-
             // Logout Button
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: ListTile(
-                leading: const Icon(
-                  Icons.logout,
-                  color: Colors.white,
-                  size: 24,
-                ),
+                leading: const Icon(Icons.logout, color: Colors.white, size: 24),
                 title: const Text(
                   'Logout',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 onTap: () => _showLogoutDialog(context),
                 contentPadding: EdgeInsets.zero,
