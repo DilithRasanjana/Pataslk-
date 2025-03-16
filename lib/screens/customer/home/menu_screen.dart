@@ -134,6 +134,10 @@ class CustomerMenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Firebase Authentication: Get the current user
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    // Firebase Firestore: Helper for database operations
+    final FirestoreHelper firestoreHelper = FirestoreHelper();
     return Scaffold(
       backgroundColor: const Color(0xFF0D47A1),
       body: SafeArea(
