@@ -43,7 +43,7 @@ class _ServiceProviderLoginScreenState extends State<ServiceProviderLoginScreen>
     setState(() {
       _isLoading = true;
     });
-  
+
     // Firebase Firestore: Check if a service provider exists by phone number
     bool exists =
         await _firestoreHelper.doesServiceProviderExistByPhone(phone: fullPhone);
@@ -91,213 +91,175 @@ class _ServiceProviderLoginScreenState extends State<ServiceProviderLoginScreen>
     );
   }
 
-
-  Widget _buildSocialButton(IconData icon, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: Center(
-          child: FaIcon(
-            icon,
-            size: 24,
-            color: Colors.black87,
-          ),
-        ),
+  Widget _buildSocialButton(IconData icon, {Color? color}) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade300),
       ),
+      child: Icon(icon, size: 24, color: color),
     );
+  }
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Image.asset(
-                  'assets/Assets-main/Assets-main/logo 2.png', // Updated to use local asset
-                  height: 120,
-                ),
-              ),
-              const SizedBox(height: 48),
-              const Text(
-                'Sign in',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 32),
-              const Text(
-                'Phone Number',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Center(
+                      child: Image.asset(
+                        'assets/Assets-main/Assets-main/logo 2.png',
+                        height: 120,
+                      ),
+                    ),
+                    const SizedBox(height: 48),
+                    const Text(
+                      'Sign in',
+                      style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87),
+                    ),
+                    const SizedBox(height: 32),
+                    const Text(
+                      'Phone Number',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87),
+                    ),
+                    const SizedBox(height: 8),
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: Row(
                         children: [
-                          Image.asset(
-                            'assets/Assets-main/Assets-main/circle 1.png', // Updated to use local asset
-                            width: 24,
-                            height: 24,
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            '+94',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                Image.asset(
+                                  'assets/Assets-main/Assets-main/circle 1.png',
+                                  width: 24,
+                                  height: 24,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  '+94',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  width: 1,
+                                  height: 24,
+                                  color: Colors.grey.shade300,
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            width: 1,
-                            height: 24,
-                            color: Colors.grey[300],
+                          Expanded(
+                            child: TextField(
+                              controller: _phoneController,
+                              keyboardType: TextInputType.phone,
+                              decoration: const InputDecoration(
+                                hintText: 'Phone Number',
+                                border: InputBorder.none,
+                                contentPadding:
+                                    EdgeInsets.symmetric(horizontal: 16),
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    Expanded(
-                      child: TextField(
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                          hintText: 'Phone Number',
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _loginWithPhone,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[200],
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text(
+                          'Sign in',
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87),
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ServiceProviderHomeScreen(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[200],
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Sign In',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              Center(
-                child: Column(
-                  children: [
-                    const Text(
-                      'Sign in with',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
+                    const SizedBox(height: 32),
+                    const Center(
+                      child: Text(
+                        'Or sign in with',
+                        style: TextStyle(
+                            fontSize: 14, color: Colors.black54),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         _buildSocialButton(
                           FontAwesomeIcons.google,
-                          () {
-                            // Google sign in will be implemented later
-                          },
+                          color: Colors.red,
                         ),
-                        const SizedBox(width: 16),
-                        _buildSocialButton(
-                          FontAwesomeIcons.facebook,
-                          () {
-                            // Facebook sign in will be implemented later
+                        const SizedBox(width: 20),
+                      ],
+                    ),
+                    const SizedBox(height: 40),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Create a New Account? ',
+                            style: TextStyle(color: Colors.black87)),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const ServiceProviderSignupScreen()),
+                            );
                           },
-                        ),
-                        const SizedBox(width: 16),
-                        _buildSocialButton(
-                          FontAwesomeIcons.apple,
-                          () {
-                            // Apple sign in will be implemented later
-                          },
+                          child: const Text(
+                            'Sign up',
+                            style: TextStyle(
+                                color: Color(0xFF0D47A1),
+                                fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Create a New Account? ',
-                    style: TextStyle(
-                      color: Colors.black87,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const ServiceProviderSignupScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Sign up',
-                      style: TextStyle(
-                        color: Color(0xFF0D47A1),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }
