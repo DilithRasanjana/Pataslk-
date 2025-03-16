@@ -378,6 +378,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
                               LengthLimitingTextInputFormatter(3),
                             ],
                             validator: _validateCVV,
+                            obscureText: true, // Add security for CVV
                           ),
                         ],
                       ),
