@@ -292,3 +292,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
         .doc(notificationId)
         .delete();
   }
+
+   // Fetch booking details from Firestore and navigate to details screen
+  void _navigateToBookingDetails(String bookingId) async {
+    try {
+      // Get specific booking document by ID from Firestore
+      final bookingDoc = await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(bookingId)
+          .get();
+          
+      if (bookingDoc.exists && context.mounted) {
+        // Extract data from Firebase document
+        final data = bookingDoc.data() as Map<String, dynamic>;
