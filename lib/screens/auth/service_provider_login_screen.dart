@@ -59,7 +59,28 @@ class _ServiceProviderLoginScreenState extends State<ServiceProviderLoginScreen>
       );
       return;
     }
-    
+
+    // Firebase Authentication: Start phone verification process
+    await _authHelper.verifyPhoneNumber(
+      phoneNumber: fullPhone,
+      // Firebase Authentication: Handle successful SMS code sending
+      onCodeSent: (String verificationId, int? forceResendingToken) {
+        setState(() {
+          _isLoading = false;
+        });
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ServiceProviderVerificationScreen(
+              verificationId: verificationId,  // Firebase verification ID for SMS authentication
+              isSignUpFlow: false,
+              phone: fullPhone,
+              resendToken: forceResendingToken,  // Firebase token for resending verification code
+            ),
+          ),
+        );
+      },
+
   Widget _buildSocialButton(IconData icon, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
