@@ -21,6 +21,32 @@ class _AddCardScreenState extends State<AddCardScreen> {
   bool _isDefaultCard = false;
   bool _saveForNextTime = false;
   bool _isLoading = false;
+
+    // Firebase instances for database and authentication operations
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _cardNumberController.dispose();
+    _expiryController.dispose();
+    _cvvController.dispose();
+    super.dispose();
+  }
+
+  /// Save card details to Firestore in a subcollection
+  Future<void> _saveCardToFirestore() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // Get current authenticated Firebase user
+      final currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        _showErrorMessage('User not logged in');
+        return;
+      }
+      
   void _showSuccessMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
