@@ -96,6 +96,27 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
             ),
           );
         },
+        // Firebase Authentication: Handle verification errors
+        onError: (String error) {
+          _phoneAttempts++;
+          setState(() {
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error)),
+          );
+        },
+      );
+    } catch (e) {
+      // Handle Firebase Authentication exceptions
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Authentication error: $e")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
