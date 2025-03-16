@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'signup_screen.dart';
-import '../customer/home/home_screen.dart';
+import './verification_screen.dart';
+// Import helper for Firebase Authentication operations
+import '../../utils/firebase_auth_helper.dart';
+// Import helper for Firebase Firestore database operations
+import '../../utils/firebase_firestore_helper.dart';
+import './signup_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
