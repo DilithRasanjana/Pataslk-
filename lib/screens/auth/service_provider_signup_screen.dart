@@ -1,7 +1,16 @@
+// Firebase Firestore package for database operations
+import 'package:cloud_firestore/cloud_firestore.dart';
+// Firebase Authentication package for user authentication
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'service_provider_login_screen.dart';
-import 'service_provider_verification_screen.dart';
+// Helper utility for Firebase Authentication operations
+import '../../utils/firebase_auth_helper.dart';
+// Helper utility for Firebase Firestore database operations
+import '../../utils/firebase_firestore_helper.dart';
+import '../service_provider/home/service_provider_home_screen.dart';
+import './service_provider_verification_screen.dart';
 
 class ServiceProviderSignupScreen extends StatefulWidget {
   const ServiceProviderSignupScreen({Key? key}) : super(key: key);
@@ -11,11 +20,17 @@ class ServiceProviderSignupScreen extends StatefulWidget {
       _ServiceProviderSignupScreenState();
 }
 
-class _ServiceProviderSignupScreenState
-    extends State<ServiceProviderSignupScreen> {
+class _ServiceProviderSignupScreenState extends State<ServiceProviderSignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  // Firebase Authentication helper instance
+  final FirebaseAuthHelper _authHelper = FirebaseAuthHelper();
+  // Firebase Firestore helper instance
+  final FirestoreHelper _firestoreHelper = FirestoreHelper();
+  bool _isProcessing = false;
 
   @override
   void dispose() {
