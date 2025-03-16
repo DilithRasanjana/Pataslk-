@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+// Firebase Authentication for user identity and session management
+import 'package:firebase_auth/firebase_auth.dart';
+// Firebase Firestore for database operations
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'add_card_screen.dart';
+
 
 class PaymentMethodsScreen extends StatefulWidget {
   const PaymentMethodsScreen({super.key});
