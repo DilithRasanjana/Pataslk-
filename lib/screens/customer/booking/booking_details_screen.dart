@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
@@ -10,6 +12,7 @@ class BookingDetailsScreen extends StatefulWidget {
   final double amount;
   final String serviceType; // Add this
   final String description; // Add this
+  final String? uploadedImageUrl;
 
   const BookingDetailsScreen({
     Key? key,
@@ -17,7 +20,8 @@ class BookingDetailsScreen extends StatefulWidget {
     required this.amount,
     this.serviceType = '', // Default value
     this.description = '', // Default value
-  }) : super(key: key);
+    this.uploadedImageUrl,
+  }) ; 
 
   @override
   State<BookingDetailsScreen> createState() => _BookingDetailsScreenState();
@@ -29,6 +33,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   bool showDetails = false;
   LatLng? selectedLocation;
   String? selectedAddress;
+   bool _isMounted = true; // Track if widget is mounted
+
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
