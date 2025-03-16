@@ -36,7 +36,27 @@ class _ServiceProviderSignupScreenState extends State<ServiceProviderSignupScree
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
     super.dispose();
+  }
+
+  bool isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  bool isValidPhone(String phone) {
+    // Expect exactly 9 digits (without a leading 0)
+    return RegExp(r'^[1-9]\d{8}$').hasMatch(phone);
+  }
+
+  /// Helper to format the input phone number to E.164 format.
+  String formatPhoneNumber(String input) {
+    String trimmed = input.trim().replaceAll(RegExp(r'\s+|-'), '');
+    if (trimmed.startsWith('0')) {
+      trimmed = trimmed.substring(1);
+    }
+    return '+94$trimmed';
   }
 
   @override
