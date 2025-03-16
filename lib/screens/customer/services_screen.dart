@@ -660,3 +660,38 @@ class _ServicesScreenState extends State<ServicesScreen> {
       debugPrint('Error creating notification: $e');
     }
   }
+
+   /// Listen for status changes in bookings and create notifications
+  void _listenForStatusChanges(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    final status = data['status'] ?? 'Pending';
+    final serviceName = data['serviceName'] ?? 'Unknown Service';
+    final bookingId = doc.id;
+    final providerName = data['providerName'] ?? 'Provider';
+    
+    // Create different notification types based on booking status
+    switch (status) {
+      case 'InProgress':
+        _createNotification(
+          title: 'Service Started',
+          message: '$providerName has started working on your $serviceName service.',
+          bookingId: bookingId,
+          type: 'inProgress'
+        );
+        break;
+      case 'PendingApproval':
+        _createNotification(
+          title: 'Approval Required',
+          message: '$providerName has marked the $serviceName job as complete. Please approve.',
+          bookingId: bookingId,
+          type: 'approval'
+        );
+        break;
+      case 'Completed':
+        // This is handled in approveCompletion method
+        break;
+      default:
+        break;
+    }
+  }
+}
