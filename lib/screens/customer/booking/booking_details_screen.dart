@@ -76,6 +76,15 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
         'imageUrl': widget.uploadedImageUrl,  // Store the image URL in the booking document
       
     };
+      // Firebase Firestore: Write data to the database
+      await docRef.set(bookingData);
+      return docRef.id;  // Return Firebase document ID
+    } catch (e) {
+      // Use a logger instead of print in production
+      debugPrint('Error creating booking: $e');
+      return null;
+    }
+  
     }
 
   Future<void> _selectDate(BuildContext context) async {
