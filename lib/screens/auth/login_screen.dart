@@ -39,6 +39,23 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
     }
     return null;
   }
+
+  /// Login using phone number with Firebase Authentication.
+  void _loginWithPhone() async {
+    final validation = _validatePhone(_phoneController.text);
+    if (validation != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(validation)),
+      );
+      return;
+    }
+    
+    String fullPhone = _formatPhoneNumber(_phoneController.text);
+
+    setState(() {
+      _isLoading = true;
+    });
+    
   @override
   Widget build(BuildContext context) {
     return Scaffold(
