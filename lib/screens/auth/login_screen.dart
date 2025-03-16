@@ -55,6 +55,25 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
     setState(() {
       _isLoading = true;
     });
+
+    // Firebase Firestore: Check if a customer exists by phone number
+    bool exists = await _firestoreHelper.doesCustomerExistByPhone(phone: fullPhone);
+    if (!exists) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No customer found with this phone number. Please sign up.")),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("You'll receive an SMS with the verification code shortly."),
+        duration: Duration(seconds: 5),
+      ),
+    );
     
   @override
   Widget build(BuildContext context) {
