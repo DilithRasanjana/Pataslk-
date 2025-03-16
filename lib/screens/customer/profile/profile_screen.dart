@@ -173,7 +173,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
     });
   }
 
- /// Saves (or updates) the profile to Firestore.
+  /// Saves (or updates) the profile to Firestore.
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -263,64 +263,12 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
     super.dispose();
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
-    }
-  }
-
-  Widget _buildProfileField(String label, Widget child) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-        child,
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-
-  Widget _buildTextField(String hint, TextEditingController controller,
-      {TextInputType? keyboardType}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          hintText: hint,
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        title: const Text('Profile'),
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -329,234 +277,162 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              // TODO: Implement save profile logic
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Profile updated successfully')),
-              );
-              Navigator.of(context).pop();
-            },
+            onPressed: _saveProfile,
             child: const Text(
               'Save Profile',
-              style: TextStyle(
-                color: Color(0xFF0D47A1),
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: Color(0xFF0D47A1), fontWeight: FontWeight.bold),
             ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'Profile',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
-            // Profile Picture
-            Center(
-              child: GestureDetector(
-                onTap: () async {
-                  final File? result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const EditPhotoScreen(),
-                    ),
-                  );
-                  if (result != null) {
-                    setState(() {
-                      _profileImage = result;
-                    });
-                    // Add a success message
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Profile photo updated successfully'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                },
-                child: Stack(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.grey[200],
-                      backgroundImage: _profileImage != null
-                          ? FileImage(_profileImage!)
-                          : null,
-                      child: _profileImage == null
-                          ? const Icon(
-                              Icons.person,
-                              size: 50,
-                              color: Colors.grey,
-                            )
-                          : null,
+                    // Profile Picture Section
+                    Center(
+                      child: GestureDetector(
+                        onTap: _editProfilePhoto,
+                        child: Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.grey[200],
+                              backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
+                              child: _profileImage == null
+                                  ? _profileImageUrl != null
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(50),
+                                          child: CachedNetworkImage(
+                                            imageUrl: _profileImageUrl!,
+                                            fit: BoxFit.cover,
+                                            width: 100,
+                                            height: 100,
+                                            placeholder: (context, url) => CircularProgressIndicator(),
+                                            errorWidget: (context, url, error) => 
+                                                const Icon(Icons.person, size: 50, color: Colors.blue),
+                                          ),
+                                        )
+                                      : const Icon(Icons.person, size: 50, color: Colors.blue)
+                                  : null,
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0D47A1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.edit, size: 20, color: Colors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF0D47A1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.edit,
-                          size: 20,
-                          color: Colors.white,
-                        ),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // First Name
+                          _buildProfileField(
+                            'First Name',
+                            _buildTextField('Enter first name', _firstNameController),
+                          ),
+                          // Last Name
+                          _buildProfileField(
+                            'Last Name',
+                            _buildTextField('Enter last name', _lastNameController),
+                          ),
+                          // Phone Number (with "+94" displayed separately)
+                          _buildProfileField(
+                            'Phone Number',
+                            Row(
+                              children: [
+                                const Text('+94 '),
+                                Expanded(
+                                  child: _buildTextField('Enter phone number', _phoneController, keyboardType: TextInputType.phone),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Email
+                          _buildProfileField(
+                            'E-mail',
+                            _buildTextField('Enter email', _emailController, keyboardType: TextInputType.emailAddress),
+                          ),
+                          // Gender
+                          _buildProfileField(
+                            'Gender',
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: _selectedGender ?? _genders.first,
+                                  isExpanded: true,
+                                  items: _genders.map((gender) {
+                                    return DropdownMenuItem(
+                                      value: gender,
+                                      child: Text(gender),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedGender = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          // Date of Birth
+                          _buildProfileField(
+                            'Date of Birth',
+                            GestureDetector(
+                              onTap: () => _selectDate(context),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _selectedDate == null
+                                          ? 'Select date'
+                                          : DateFormat('dd/MM/yyyy').format(_selectedDate!),
+                                      style: TextStyle(
+                                        color: _selectedDate == null ? Colors.grey : Colors.black,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    const Icon(Icons.calendar_today, color: Colors.grey),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-
-            const SizedBox(height: 24),
-
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // First Name
-                  _buildProfileField(
-                    'First Name',
-                    _buildTextField('Enter first name', _firstNameController),
-                  ),
-
-                  // Last Name
-                  _buildProfileField(
-                    'Last Name',
-                    _buildTextField('Enter last name', _lastNameController),
-                  ),
-
-                  // Phone Number
-                  _buildProfileField(
-                    'Phone Number',
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            children: [
-                              Image.asset(
-                                'assets/Assets-main/Assets-main/circle 1.png',
-                                width: 24,
-                                height: 24,
-                              ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                '+94',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildTextField(
-                              'Phone number', _phoneController,
-                              keyboardType: TextInputType.phone),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Email
-                  _buildProfileField(
-                    'E-mail',
-                    _buildTextField('Enter email', _emailController,
-                        keyboardType: TextInputType.emailAddress),
-                  ),
-
-                  // Gender
-                  _buildProfileField(
-                    'Gender',
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _selectedGender,
-                          isExpanded: true,
-                          items: ['Male', 'Female']
-                              .map((gender) => DropdownMenuItem(
-                                    value: gender,
-                                    child: Text(gender),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() {
-                                _selectedGender = value;
-                              });
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Date of Birth
-                  _buildProfileField(
-                    'Date of Birth',
-                    GestureDetector(
-                      onTap: () => _selectDate(context),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _selectedDate == null
-                                  ? 'Select date'
-                                  : DateFormat('dd/MM/yyyy')
-                                      .format(_selectedDate!),
-                              style: TextStyle(
-                                color: _selectedDate == null
-                                    ? Colors.grey
-                                    : Colors.black,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const Icon(Icons.calendar_today,
-                                color: Colors.grey),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
