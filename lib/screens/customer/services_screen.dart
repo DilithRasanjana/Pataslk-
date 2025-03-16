@@ -8,11 +8,29 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'booking/order_status_screen.dart';
 import 'home/home_screen.dart'; 
 
-class ServicesScreen extends StatelessWidget {
+class ServicesScreen extends StatefulWidget {
   const ServicesScreen({Key? key}) : super(key: key);
 
   @override
+  State<ServicesScreen> createState() => _ServicesScreenState();
+}
+
+class _ServicesScreenState extends State<ServicesScreen> {
+  // Get current Firebase authenticated user
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
+  bool _indexError = false;
+
+  @override
   Widget build(BuildContext context) {
+    if (_currentUser == null) {
+      // If no user is logged in, show a placeholder or redirect to login.
+      return const Scaffold(
+        body: Center(
+          child: Text('Please log in to view your bookings.'),
+        ),
+      );
+    }
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -27,8 +45,18 @@ class ServicesScreen extends StatelessWidget {
           ),
           backgroundColor: Colors.white,
           elevation: 0,
+          // Update the leading icon to navigate to HomeScreen
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () {
+              // Navigate to HomeScreen when back arrow is pressed
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+            },
+          ),
           bottom: TabBar(
-            indicatorColor: Colors.blue[900],
+            indicatorColor: Colors.blue,
             labelColor: Colors.blue[900],
             unselectedLabelColor: Colors.grey,
             tabs: const [
@@ -40,20 +68,26 @@ class ServicesScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            _buildEmptyState(
-              'No Upcoming Orders',
-              'Currently you don\'t have any upcoming orders.\nPlace and track your orders from here.',
-              'assets/Assets-main/Assets-main/service png.png',
+            // 1) Upcoming tab
+            _buildBookingsList(
+              statusList: ['Pending', 'InProgress', 'PendingApproval'],
+              emptyTitle: 'No Upcoming Orders',
+              emptySubtitle:
+                  'Currently you don\'t have any upcoming orders.\nPlace and track your orders from here.',
             ),
-            _buildEmptyState(
-              'No History Order',
-              'Currently you don\'t have any History order.\nPlace and track your orders from here.',
-              'assets/Assets-main/Assets-main/service png.png',
+            // 2) History tab
+            _buildBookingsList(
+              statusList: ['Completed'],
+              emptyTitle: 'No History Order',
+              emptySubtitle:
+                  'Currently you don\'t have any History order.\nPlace and track your orders from here.',
             ),
-            _buildEmptyState(
-              'No Draft Orders',
-              'Currently you don\'t have any draft orders.\nPlace and track your orders from here.',
-              'assets/Assets-main/Assets-main/service png.png',
+            // 3) Draft tab
+            _buildBookingsList(
+              statusList: ['Draft'],
+              emptyTitle: 'No Draft Orders',
+              emptySubtitle:
+                  'Currently you don\'t have any draft orders.\nPlace and track your orders from here.',
             ),
           ],
         ),
