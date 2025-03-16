@@ -46,7 +46,17 @@ class _AddCardScreenState extends State<AddCardScreen> {
         _showErrorMessage('User not logged in');
         return;
       }
-      
+
+      // Create the data to save
+      final Map<String, dynamic> cardData = {
+        'cardholderName': _nameController.text.trim(),
+        'cardNumber': _maskCardNumber(_cardNumberController.text.replaceAll(' ', '')),
+        'expiryDate': _expiryController.text.trim(),
+        'lastFourDigits': _cardNumberController.text.replaceAll(' ', '').substring(12, 16),
+        'isDefault': _isDefaultCard,
+        'createdAt': Timestamp.now(), // Firebase server timestamp
+      };
+
   void _showSuccessMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
