@@ -35,6 +35,14 @@ class _ServiceProviderLoginScreenState extends State<ServiceProviderLoginScreen>
     return '+94' + raw.trim();
   }
 
+  /// Login using phone number with Firebase Authentication.
+  void _loginWithPhone() async {
+    String rawPhone = _phoneController.text;
+    String fullPhone = _formatPhoneNumber(rawPhone);
+
+    setState(() {
+      _isLoading = true;
+    });
 
   Widget _buildSocialButton(IconData icon, VoidCallback onTap) {
     return InkWell(
