@@ -80,6 +80,17 @@ class _ServiceProviderLoginScreenState extends State<ServiceProviderLoginScreen>
           ),
         );
       },
+      // Firebase Authentication: Handle verification errors
+      onError: (String error) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error)));
+      },
+    );
+  }
+
 
   Widget _buildSocialButton(IconData icon, VoidCallback onTap) {
     return InkWell(
