@@ -173,7 +173,87 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
     });
   }
 
- 
+ /// Saves (or updates) the profile to Firestore.
+  Future<void> _saveProfile() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+      
+      // Get current authenticated user
+      User? user = _auth.currentUser;
+      if (user != null) {
+        // Save user data to Firestore using helper
+        await _firestoreHelper.saveUserData(
+          collection: 'customers',
+          uid: user.uid,
+          data: {
+            'firstName': _firstNameController.text.trim(),
+            'lastName': _lastNameController.text.trim(),
+            'phone': '+94' + _phoneController.text.trim(),
+            'email': _emailController.text.trim(),
+            'gender': _selectedGender,
+            // Convert DateTime to Firestore Timestamp
+            'dob': _selectedDate != null ? Timestamp.fromDate(_selectedDate!) : null,
+            'userType': 'customer',
+          },
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No user signed in')),
+        );
+      }
+      
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  /// Builds a profile field section with a label.
+  Widget _buildProfileField(String label, Widget child) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black87),
+        ),
+        const SizedBox(height: 8),
+        child,
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  /// Builds a text field with consistent decoration.
+  Widget _buildTextField(String hint, TextEditingController controller, {TextInputType? keyboardType}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          hintText: hint,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Required';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _firstNameController.dispose();
