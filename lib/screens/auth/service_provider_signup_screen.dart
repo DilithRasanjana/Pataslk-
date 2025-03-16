@@ -116,6 +116,20 @@ class _ServiceProviderSignupScreenState extends State<ServiceProviderSignupScree
             ),
           );
         },
+        // Firebase Authentication: Handle verification errors
+        onError: (String error) {
+          setState(() {
+            _isProcessing = false;
+          });
+          Navigator.of(context).pop(); // Close loading dialog.
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error)),
+          );
+        },
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
