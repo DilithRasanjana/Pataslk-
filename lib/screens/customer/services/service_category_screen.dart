@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'service_details_screen.dart';
+import './service_details_screen.dart';
 
 class ServiceCategoryScreen extends StatelessWidget {
   final String serviceName;
