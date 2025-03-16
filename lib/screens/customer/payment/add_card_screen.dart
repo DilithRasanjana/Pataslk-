@@ -57,6 +57,46 @@ class _AddCardScreenState extends State<AddCardScreen> {
         'createdAt': Timestamp.now(), // Firebase server timestamp
       };
 
+      // Only save CVV if user chose to save it
+      if (_saveForNextTime) {
+        cardData['cvv'] = _cvvController.text.trim();
+      }
+
+      // Firebase Firestore reference to user's payment methods subcollection
+      final docRef = _firestore
+          .collection('customers')
+          .doc(currentUser.uid)
+          .collection('paymentMethods')
+          .doc();
+
+      // If this is the default card and there are other cards, update them
+      if (_isDefaultCard) {
+        // Query existing default cards in Firestore
+        final existingCards = await _firestore
+            .collection('customers')
+            .doc(currentUser.uid)
+            .collection('paymentMethods')
+            .where('isDefault', isEqualTo: true)
+            .get();
+
+        // Create a Firestore batch to update multiple documents atomically
+        final batch = _firestore.batch();
+        
+        // Set all other cards to not be default
+        for (var card in existingCards.docs) {
+          batch.update(card.reference, {'isDefault': false});
+        }
+        
+        // Add the new card to the batch
+        batch.set(docRef, cardData);
+        
+        // Commit the Firestore batch operation
+        await batch.commit();
+      } else {
+        // Just add the new card document to Firestore
+        await docRef.set(cardData);
+      }
+      
   void _showSuccessMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
