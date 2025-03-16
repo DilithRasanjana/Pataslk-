@@ -74,7 +74,29 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
         duration: Duration(seconds: 5),
       ),
     );
-    
+
+    try {
+      // Firebase Authentication: Start phone number verification process
+      await _authHelper.verifyPhoneNumber(
+        phoneNumber: fullPhone,
+        // Firebase Authentication: Handle successful SMS code sending
+        onCodeSent: (String verificationId, int? forceResendingToken) {
+          setState(() {
+            _isLoading = false;
+            _phoneAttempts = 0;
+          });
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => CustomerVerificationScreen(
+                verificationId: verificationId,  // Firebase verification ID for SMS authentication
+                isSignUpFlow: false,
+                phone: fullPhone,
+                resendToken: forceResendingToken,  // Firebase token for resending verification code
+              ),
+            ),
+          );
+        },
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
