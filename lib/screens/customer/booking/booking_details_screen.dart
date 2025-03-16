@@ -33,8 +33,24 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   bool showDetails = false;
   LatLng? selectedLocation;
   String? selectedAddress;
-   bool _isMounted = true; // Track if widget is mounted
+  bool _isMounted = true; // Track if widget is mounted
 
+  @override
+  void dispose() {
+    _isMounted = false;
+    super.dispose();
+  }
+
+   // Create booking in Firestore and return the doc ID
+  Future<String?> _createBooking() async {
+    try {
+      // Firebase Authentication: Get current logged in user
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        // If not logged in, return null or show an error
+        return null;
+      }
+    }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
