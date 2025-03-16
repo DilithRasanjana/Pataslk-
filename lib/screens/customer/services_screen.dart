@@ -635,3 +635,28 @@ class _ServicesScreenState extends State<ServicesScreen> {
       );
     }
   }
+
+    /// Create a notification document in Firestore
+  Future<void> _createNotification({
+    required String title,
+    required String message,
+    required String bookingId,
+    required String type,
+  }) async {
+    if (_currentUser == null) return;
+    
+    try {
+      // Add a new notification document to Firestore
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'userId': _currentUser!.uid,
+        'title': title,
+        'message': message,
+        'bookingId': bookingId,
+        'type': type,
+        'read': false,
+        'createdAt': FieldValue.serverTimestamp(), // Server-side timestamp
+      });
+    } catch (e) {
+      debugPrint('Error creating notification: $e');
+    }
+  }
