@@ -83,6 +83,97 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
     });
   }
 
+  /// Opens a date picker for Date of Birth.
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime(2000),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  /// Navigates to edit photo screen and handles the result
+  Future<void> _editProfilePhoto() async {
+    final File? result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditPhotoScreen(currentImageUrl: _profileImageUrl),
+      ),
+    );
+    
+    if (result != null) {
+      setState(() {
+        _profileImage = result;
+      });
+      
+      // Upload immediately when a new photo is selected
+      _uploadProfileImage();
+    }
+  }
+
+  /// Uploads the profile image to Firebase Storage
+  Future<void> _uploadProfileImage() async {
+    if (_profileImage == null) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
+    // Get current authenticated user
+    User? user = _auth.currentUser;
+    if (user != null) {
+      // Delete old image from Firebase Storage if it exists
+      if (_profileImageUrl != null) {
+        await _storageHelper.deleteFileByUrl(_profileImageUrl!);
+      }
+      
+      // Upload new image to Firebase Storage
+      String? downloadUrl = await _storageHelper.uploadFile(
+        file: _profileImage!, 
+        userId: user.uid, 
+        folder: 'profile_images',
+      );
+      
+      if (downloadUrl != null) {
+        // Update Firestore document with new image URL
+        await _firestoreHelper.saveUserData(
+          collection: 'customers',
+          uid: user.uid,
+          data: {'profileImageUrl': downloadUrl},
+        );
+        
+        setState(() {
+          _profileImageUrl = downloadUrl;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile photo updated successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to upload profile photo'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+    
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+ 
   @override
   void dispose() {
     _firstNameController.dispose();
