@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+// Firebase Authentication for user identity and session management
+import 'package:firebase_auth/firebase_auth.dart';
+// Firebase Firestore for database operations
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'add_card_screen.dart';
 
 class PaymentMethodsScreen extends StatefulWidget {
@@ -9,7 +14,12 @@ class PaymentMethodsScreen extends StatefulWidget {
 }
 
 class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
+    // Firebase Firestore instance for database operations
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // Firebase Auth instance for user authentication
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   String? _selectedMethod;
+  bool _isLoading = false;
 
   Widget _buildPaymentOption({
     required String title,
@@ -44,11 +54,20 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
               ),
             ),
             const Spacer(),
-            Image.network(
-              imagePath,
+            CachedNetworkImage(
+              imageUrl: imagePath,
               height: 32,
               width: 50,
               fit: BoxFit.contain,
+              placeholder: (context, url) => const SizedBox(
+                width: 50,
+                height: 32,
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              ),
+              errorWidget: (context, url, error) => Icon(
+                Icons.credit_card,
+                color: Colors.grey[400],
+              ),
             ),
           ],
         ),
@@ -58,6 +77,17 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
 
+  Widget _buildSavedCard(DocumentSnapshot cardDoc) {
+    // Extract data from Firebase Firestore document
+    final cardData = cardDoc.data() as Map<String, dynamic>;
+    final cardType = _getCardType(cardData['cardNumber']);
+    final lastFourDigits = cardData['lastFourDigits'];
+    final cardholderName = cardData['cardholderName'];
+    final expiryDate = cardData['expiryDate'];
+    final isDefault = cardData['isDefault'] ?? false;
+    final cardId = cardDoc.id;
+
+    
   Widget _buildCreditCardOption() {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
@@ -79,7 +109,11 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const AddCardScreen()),
-            );
+            ).then((_) {
+              // Refresh the screen when returning from AddCardScreen
+              setState(() {});
+            });
+            
           },
           borderRadius: BorderRadius.circular(12),
           child: Padding(
