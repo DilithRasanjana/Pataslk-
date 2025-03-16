@@ -470,10 +470,19 @@ class _AddCardScreenState extends State<AddCardScreen> {
           ),
         ),
       ),
-    );
+      if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
-}
-
+  
 class _CardNumberFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
