@@ -538,3 +538,12 @@ class _ServicesScreenState extends State<ServicesScreen> {
       ),
     );
   }
+
+    /// Formats the booking date and time into a single string.
+  String _formatSchedule(DateTime? date, String timeStr) {
+    if (date == null) {
+      return timeStr.isNotEmpty ? timeStr : 'No schedule';
+    }
+    final formattedDate = DateFormat('dd MMM').format(date);
+    return timeStr.isNotEmpty ? '$timeStr,  $formattedDate' : DateFormat('hh:mm a,  dd MMM').format(date);
+  }
