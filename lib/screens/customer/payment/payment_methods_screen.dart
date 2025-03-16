@@ -54,11 +54,20 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
               ),
             ),
             const Spacer(),
-            Image.network(
-              imagePath,
+            CachedNetworkImage(
+              imageUrl: imagePath,
               height: 32,
               width: 50,
               fit: BoxFit.contain,
+              placeholder: (context, url) => const SizedBox(
+                width: 50,
+                height: 32,
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              ),
+              errorWidget: (context, url, error) => Icon(
+                Icons.credit_card,
+                color: Colors.grey[400],
+              ),
             ),
           ],
         ),
@@ -67,7 +76,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
       ),
     );
   }
-
+  
   Widget _buildCreditCardOption() {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
