@@ -76,7 +76,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
       ),
     );
   }
-  
+
   Widget _buildCreditCardOption() {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
@@ -98,7 +98,11 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const AddCardScreen()),
-            );
+            ).then((_) {
+              // Refresh the screen when returning from AddCardScreen
+              setState(() {});
+            });
+            
           },
           borderRadius: BorderRadius.circular(12),
           child: Padding(
