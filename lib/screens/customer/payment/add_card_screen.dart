@@ -441,12 +441,14 @@ class _AddCardScreenState extends State<AddCardScreen> {
                   ],
                 ),
                 const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _showSuccessMessage();
-                    }
-                  },
+                    ElevatedButton(
+                      onPressed: _isLoading 
+                          ? null 
+                          : () {
+                              if (_formKey.currentState!.validate()) {
+                                _saveCardToFirestore();
+                              }
+                            },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0D47A1),
                     padding: const EdgeInsets.symmetric(vertical: 16),
