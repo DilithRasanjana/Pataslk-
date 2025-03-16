@@ -225,3 +225,62 @@ class _ServicesScreenState extends State<ServicesScreen> {
       rethrow;
     }
   }
+
+   /// Builds the empty state widget (when no bookings exist).
+  Widget _buildEmptyState(String title, String subtitle, String imagePath) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            imagePath,
+            height: 120,
+            width: 120,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () {
+              // Navigate to HomeScreen instead of just popping
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[900],
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 12,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Back to Home',  // Updated text for clarity
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
