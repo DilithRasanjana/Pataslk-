@@ -26,7 +26,19 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
   /// Formats the raw phone number to E.164 format for Firebase Authentication.
   String _formatPhoneNumber(String raw) => FirebaseAuthHelper.formatPhoneNumber(raw);
-  
+
+  /// Validates the phone number.
+  String? _validatePhone(String value) {
+    if (value.isEmpty) {
+      return 'Please enter your phone number';
+    }
+    // Expect exactly 9 digits.
+    final cleanDigits = value.replaceAll(RegExp(r'[^\d]'), '');
+    if (cleanDigits.length != 9) {
+      return 'Please enter a valid 9-digit mobile number';
+    }
+    return null;
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
