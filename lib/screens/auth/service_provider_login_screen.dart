@@ -43,7 +43,23 @@ class _ServiceProviderLoginScreenState extends State<ServiceProviderLoginScreen>
     setState(() {
       _isLoading = true;
     });
-
+  
+    // Firebase Firestore: Check if a service provider exists by phone number
+    bool exists =
+        await _firestoreHelper.doesServiceProviderExistByPhone(phone: fullPhone);
+    if (!exists) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text("No such service provider found. Please sign up."),
+        ),
+      );
+      return;
+    }
+    
   Widget _buildSocialButton(IconData icon, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
