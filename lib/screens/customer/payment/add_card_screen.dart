@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+// Firebase Authentication for user identity and session management
+import 'package:firebase_auth/firebase_auth.dart';
+// Firebase Firestore for database operations
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddCardScreen extends StatefulWidget {
   const AddCardScreen({super.key});
