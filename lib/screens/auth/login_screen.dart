@@ -24,6 +24,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
   bool _isLoading = false;
   int _phoneAttempts = 0;
 
+  /// Formats the raw phone number to E.164 format for Firebase Authentication.
+  String _formatPhoneNumber(String raw) => FirebaseAuthHelper.formatPhoneNumber(raw);
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
