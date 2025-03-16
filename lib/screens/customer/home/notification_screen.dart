@@ -82,63 +82,46 @@ class _NotificationScreenState extends State<NotificationScreen> {
           const SizedBox(width: 16),
         ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/Assets-main/Assets-main/No notofications.png',
-              width: 120,
-              height: 120,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'No Notifications!',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'You dont have any notification yet. Please\nplace order',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to services
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0D47A1),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'View all services',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
+     
+      body: StreamBuilder<QuerySnapshot>(
+        // Firebase Firestore query to get user-specific notifications with ordering
+        stream: FirebaseFirestore.instance
+            .collection('notifications')
+            .where('userId', isEqualTo: currentUser.uid)
+            .orderBy('createdAt', descending: _sortBy == 'recent')
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          
+          // Access Firebase documents from snapshot
+          final notifications = snapshot.data?.docs ?? [];
+          
+          // Mark all unread notifications as read in Firestore
+          _markNotificationsAsRead(notifications);
+          
+          if (notifications.isEmpty) {
+            return _buildEmptyState();
+          }
+          
+          return ListView.builder(
+            itemCount: notifications.length,
+            padding: const EdgeInsets.all(12),
+            itemBuilder: (context, index) {
+              // Extract Firebase document data
+              final notification = notifications[index].data() as Map<String, dynamic>;
+              return _buildNotificationCard(
+                notification: notification,
+                notificationId: notifications[index].id,
+              );
+            },
+          );
+        },
       ),
     );
   }
-}
