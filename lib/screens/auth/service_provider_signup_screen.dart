@@ -92,6 +92,31 @@ class _ServiceProviderSignupScreenState extends State<ServiceProviderSignupScree
       
       String fullPhone = formatPhoneNumber(rawPhone);
 
+      // Firebase Authentication: Start phone verification process
+      await _authHelper.verifyPhoneNumber(
+        phoneNumber: fullPhone,
+        // Firebase Authentication: Handle successful SMS code sending
+        onCodeSent: (String verificationId, int? forceResendingToken) {
+          setState(() {
+            _isProcessing = false;
+          });
+          Navigator.of(context).pop(); // Close loading dialog.
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ServiceProviderVerificationScreen(
+                verificationId: verificationId,  // Firebase verification ID for SMS authentication
+                isSignUpFlow: true,
+                firstName: _firstNameController.text.trim(),
+                lastName: _lastNameController.text.trim(),
+                email: _emailController.text.trim(),
+                phone: fullPhone,
+                jobRole: _selectedJobRole,
+                resendToken: forceResendingToken,  // Firebase token for resending verification code
+              ),
+            ),
+          );
+        },
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
