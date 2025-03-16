@@ -96,7 +96,22 @@ class _AddCardScreenState extends State<AddCardScreen> {
         // Just add the new card document to Firestore
         await docRef.set(cardData);
       }
-      
+
+      _showSuccessMessage();
+    } catch (e) {
+      debugPrint('Error saving card: $e');
+      _showErrorMessage('Failed to save card. Please try again.');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  /// Mask the card number for storage, keeping only the last 4 digits
+  String _maskCardNumber(String cardNumber) {
+    if (cardNumber.length < 16) return cardNumber;
+    return 'XXXXXXXXXXXX${cardNumber.substring(12, 16)}';
+  }
+     
   void _showSuccessMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
