@@ -175,3 +175,24 @@ class _ServicesScreenState extends State<ServicesScreen> {
               'assets/Assets-main/Assets-main/service png.png',
             );
           }
+
+// We have some bookings. Build a ListView.
+          final docs = snapshot.data!.docs;
+          return ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: docs.length,
+            itemBuilder: (context, index) {
+              final doc = docs[index];
+              _listenForStatusChanges(doc); // Listen for status changes
+              return _buildBookingCard(doc, context);
+            },
+          );
+        },
+      );
+    } catch (e) {
+      // Catch any unexpected errors
+      return Center(
+        child: Text('An error occurred: $e'),
+      );
+    }
+  }
