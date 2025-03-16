@@ -10,8 +10,25 @@ import '../booking/order_status_screen.dart';
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
 
+   @override
+  State<NotificationScreen> createState() => _NotificationScreenState();
+}
+
+class _NotificationScreenState extends State<NotificationScreen> {
+  // Firebase Auth instance for user authentication
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  String _sortBy = 'recent';
+
   @override
   Widget build(BuildContext context) {
+    // Get current authenticated Firebase user
+    final User? currentUser = _auth.currentUser;
+    
+    if (currentUser == null) {
+      return const Scaffold(
+        body: Center(child: Text('Please log in to view notifications')),
+      );
+    }
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
