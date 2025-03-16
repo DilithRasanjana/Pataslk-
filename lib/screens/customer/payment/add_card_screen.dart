@@ -146,7 +146,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
       ),
     );
   }
-  
+
   String? _validateCardNumber(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter card number';
@@ -173,6 +173,13 @@ class _AddCardScreenState extends State<AddCardScreen> {
     }
     if (value.length != 3) {
       return 'CVV must be 3 digits';
+    }
+    return null;
+  }
+
+  String? _validateName(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter name on card';
     }
     return null;
   }
