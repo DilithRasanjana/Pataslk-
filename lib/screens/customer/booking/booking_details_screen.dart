@@ -33,8 +33,59 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   bool showDetails = false;
   LatLng? selectedLocation;
   String? selectedAddress;
-   bool _isMounted = true; // Track if widget is mounted
+  bool _isMounted = true; // Track if widget is mounted
 
+  @override
+  void dispose() {
+    _isMounted = false;
+    super.dispose();
+  }
+
+   // Create booking in Firestore and return the doc ID
+  Future<String?> _createBooking() async {
+    try {
+      // Firebase Authentication: Get current logged in user
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        // If not logged in, return null or show an error
+        return null;
+      }
+       // Firebase Firestore: Create reference to 'bookings' collection
+      final CollectionReference bookingsRef =
+          FirebaseFirestore.instance.collection('bookings');
+      final docRef = bookingsRef.doc(); // Create Firestore document reference
+      final referenceCode = docRef.id; // Use Firestore document ID as reference code
+
+      // Prepare data for Firestore document
+      final bookingData = {
+        'customer_id': currentUser.uid,  // Store Firebase user ID
+        'provider_id': null, // set later by the service provider
+        'providerName': '',  // set later by the service provider
+        'referenceCode': referenceCode,
+        'serviceName': widget.serviceName,
+        'serviceType': widget.serviceType,
+        'description': widget.description,
+        'amount': widget.amount,
+        'bookingDate':
+            selectedDate != null ? Timestamp.fromDate(selectedDate!) : null,  // Firebase Timestamp
+        'bookingTime':
+            selectedTime != null ? selectedTime!.format(context) : null,
+        'location': selectedAddress,
+        'status': 'Pending',
+        'createdAt': Timestamp.now(),  // Firebase server timestamp
+        'imageUrl': widget.uploadedImageUrl,  // Store the image URL in the booking document
+      
+    };
+      // Firebase Firestore: Write data to the database
+      await docRef.set(bookingData);
+      return docRef.id;  // Return Firebase document ID
+    } catch (e) {
+      // Use a logger instead of print in production
+      debugPrint('Error creating booking: $e');
+      return null;
+    }
+  
+    }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(

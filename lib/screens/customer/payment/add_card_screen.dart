@@ -267,26 +267,50 @@ class _AddCardScreenState extends State<AddCardScreen> {
                       ),
                       validator: _validateName,
                     ),
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(16),
-                    _CardNumberFormatter(),
-                  ],
-                  validator: _validateCardNumber,
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Expire date',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Card number',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _cardNumberController,
+                      decoration: InputDecoration(
+                        hintText: '0000 0000 0000 0000',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                      ),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(16),
+                        _CardNumberFormatter(),
+                      ],
+                      validator: _validateCardNumber,
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Expire date',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: _expiryController,
@@ -354,6 +378,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
                               LengthLimitingTextInputFormatter(3),
                             ],
                             validator: _validateCVV,
+                            obscureText: true, // Add security for CVV
                           ),
                         ],
                       ),
@@ -383,15 +408,27 @@ class _AddCardScreenState extends State<AddCardScreen> {
                   ],
                 ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Save this card for next time',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Save this card for next time',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Text(
+                              'Includes saving CVV securely',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
                     Switch(
                       value: _saveForNextTime,
                       onChanged: (value) {
@@ -404,12 +441,14 @@ class _AddCardScreenState extends State<AddCardScreen> {
                   ],
                 ),
                 const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _showSuccessMessage();
-                    }
-                  },
+                    ElevatedButton(
+                      onPressed: _isLoading 
+                          ? null 
+                          : () {
+                              if (_formKey.currentState!.validate()) {
+                                _saveCardToFirestore();
+                              }
+                            },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0D47A1),
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -431,10 +470,19 @@ class _AddCardScreenState extends State<AddCardScreen> {
           ),
         ),
       ),
-    );
+      if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
-}
-
+  
 class _CardNumberFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
