@@ -33,6 +33,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
   bool showDetails = false;
   LatLng? selectedLocation;
   String? selectedAddress;
+   bool _isMounted = true; // Track if widget is mounted
+
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
