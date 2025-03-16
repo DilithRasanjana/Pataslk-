@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'booking/order_status_screen.dart';
-import 'home/home_screen.dart'; 
+import 'home/home_screen.dart';
 
 class ServicesScreen extends StatefulWidget {
   const ServicesScreen({Key? key}) : super(key: key);
@@ -95,7 +95,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
   }
 
-/// Builds a list of bookings from Firestore for the current user, filtered by [statusList].
+  /// Builds a list of bookings from Firestore for the current user, filtered by [statusList].
   Widget _buildBookingsList({
     required List<String> statusList,
     required String emptyTitle,
@@ -176,7 +176,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
             );
           }
 
-// We have some bookings. Build a ListView.
+          // We have some bookings. Build a ListView.
           final docs = snapshot.data!.docs;
           return ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -196,7 +196,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       );
     }
   }
-
+  
   /// Gets the stream for bookings with error handling for missing indexes
   Stream<QuerySnapshot> _getBookingsStream(List<String> statusList) {
     try {
@@ -226,7 +226,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     }
   }
 
-   /// Builds the empty state widget (when no bookings exist).
+  /// Builds the empty state widget (when no bookings exist).
   Widget _buildEmptyState(String title, String subtitle, String imagePath) {
     return Center(
       child: Column(
@@ -285,7 +285,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
   }
 
-    /// Builds a card widget for a single booking document.
+  /// Builds a card widget for a single booking document.
   Widget _buildBookingCard(DocumentSnapshot doc, BuildContext context) {
     // Extract data from the Firestore document
     final data = doc.data() as Map<String, dynamic>;
@@ -539,7 +539,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
   }
 
-    /// Formats the booking date and time into a single string.
+  /// Formats the booking date and time into a single string.
   String _formatSchedule(DateTime? date, String timeStr) {
     if (date == null) {
       return timeStr.isNotEmpty ? timeStr : 'No schedule';
@@ -548,7 +548,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     return timeStr.isNotEmpty ? '$timeStr,  $formattedDate' : DateFormat('hh:mm a,  dd MMM').format(date);
   }
 
-   /// Builds a small badge to display booking status (e.g. "Pending", "InProgress", "Completed").
+  /// Builds a small badge to display booking status (e.g. "Pending", "InProgress", "Completed").
   Widget _buildStatusBadge(String status) {
     Color badgeColor;
     String text = status;
@@ -589,7 +589,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
   }
 
-   /// Approve job completion and mark status as completed in Firestore
+  /// Approve job completion and mark status as completed in Firestore
   Future<void> _approveCompletion(String bookingId) async {
     try {
       // Get the booking data from Firestore
@@ -635,8 +635,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
       );
     }
   }
-
-    /// Create a notification document in Firestore
+  
+  /// Create a notification document in Firestore
   Future<void> _createNotification({
     required String title,
     required String message,
@@ -660,8 +660,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
       debugPrint('Error creating notification: $e');
     }
   }
-
-   /// Listen for status changes in bookings and create notifications
+  
+  /// Listen for status changes in bookings and create notifications
   void _listenForStatusChanges(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     final status = data['status'] ?? 'Pending';
