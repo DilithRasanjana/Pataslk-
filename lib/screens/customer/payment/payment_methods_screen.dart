@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'add_card_screen.dart';
 
-
 class PaymentMethodsScreen extends StatefulWidget {
   const PaymentMethodsScreen({super.key});
 
@@ -15,7 +14,12 @@ class PaymentMethodsScreen extends StatefulWidget {
 }
 
 class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
+    // Firebase Firestore instance for database operations
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  // Firebase Auth instance for user authentication
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   String? _selectedMethod;
+  bool _isLoading = false;
 
   Widget _buildPaymentOption({
     required String title,
