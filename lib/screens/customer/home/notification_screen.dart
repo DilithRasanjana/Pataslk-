@@ -7,10 +7,10 @@ import 'package:intl/intl.dart';
 import '../services_screen.dart';
 import '../booking/order_status_screen.dart';
 
-class NotificationScreen extends StatelessWidget {
+class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
 
-   @override
+  @override
   State<NotificationScreen> createState() => _NotificationScreenState();
 }
 
@@ -29,6 +29,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         body: Center(child: Text('Please log in to view notifications')),
       );
     }
+    
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -57,16 +58,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
         ),
         actions: [
           PopupMenuButton<String>(
-            icon: const Text(
-              'Recent',
-              style: TextStyle(
+            icon: Text(
+              _sortBy == 'recent' ? 'Recent' : 'Oldest',
+              style: const TextStyle(
                 color: Colors.blue,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
             ),
             onSelected: (value) {
-              // Handle filter selection
+              setState(() {
+                _sortBy = value;
+              });
             },
             itemBuilder: (BuildContext context) => [
               const PopupMenuItem(
@@ -82,7 +85,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
           const SizedBox(width: 16),
         ],
       ),
-     
       body: StreamBuilder<QuerySnapshot>(
         // Firebase Firestore query to get user-specific notifications with ordering
         stream: FirebaseFirestore.instance
@@ -125,7 +127,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ),
     );
   }
-
+  
   Widget _buildNotificationCard({
     required Map<String, dynamic> notification, 
     required String notificationId
@@ -267,7 +269,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       ),
     );
   }
-
+  
   // Update multiple Firebase documents in a single batch operation
   Future<void> _markNotificationsAsRead(List<QueryDocumentSnapshot> notifications) async {
     // Create a Firestore batch to handle multiple updates atomically
@@ -292,8 +294,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
         .doc(notificationId)
         .delete();
   }
-
-   // Fetch booking details from Firestore and navigate to details screen
+  
+  // Fetch booking details from Firestore and navigate to details screen
   void _navigateToBookingDetails(String bookingId) async {
     try {
       // Get specific booking document by ID from Firestore
@@ -305,3 +307,45 @@ class _NotificationScreenState extends State<NotificationScreen> {
       if (bookingDoc.exists && context.mounted) {
         // Extract data from Firebase document
         final data = bookingDoc.data() as Map<String, dynamic>;
+        
+        // Get necessary booking details from Firebase document
+        final serviceName = data['serviceName'] ?? 'Unknown Service';
+        final serviceType = data['serviceType'] ?? '';
+        // Convert Firebase Timestamp to DateTime
+        final bookingDateTs = data['bookingDate'] as Timestamp?;
+        final bookingDate = bookingDateTs != null ? bookingDateTs.toDate() : null;
+        final bookingTimeStr = data['bookingTime'] as String?;
+        final description = data['description'] ?? '';
+        final address = data['location'] ?? '';
+        final imageUrl = data['imageUrl'] as String?;
+        
+        if (bookingDate != null && bookingTimeStr != null) {
+          // Parse time from string
+          final timeString = bookingTimeStr.split(' ')[0]; // e.g., "10:30" from "10:30 AM"
+          final timeParts = timeString.split(':');
+          final hour = int.tryParse(timeParts[0]) ?? 0;
+          final minute = int.tryParse(timeParts[1]) ?? 0;
+          final timeOfDay = TimeOfDay(hour: hour, minute: minute);
+          
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OrderStatusScreen(
+                bookingId: bookingId,
+                address: address,
+                serviceType: serviceType,
+                jobRole: serviceName,
+                selectedDate: bookingDate,
+                selectedTime: timeOfDay,
+                description: description,
+                uploadedImageUrl: imageUrl,
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error navigating to booking details: $e');
+    }
+  }
+}
