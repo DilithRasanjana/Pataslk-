@@ -284,3 +284,23 @@ class _ServicesScreenState extends State<ServicesScreen> {
       ),
     );
   }
+
+    /// Builds a card widget for a single booking document.
+  Widget _buildBookingCard(DocumentSnapshot doc, BuildContext context) {
+    // Extract data from the Firestore document
+    final data = doc.data() as Map<String, dynamic>;
+
+    final serviceName = data['serviceName'] ?? 'Unknown Service';
+    final serviceType = data['serviceType'] ?? '';
+    final status = data['status'] ?? 'Pending';
+    final bookingId = doc.id; // Firestore document ID
+    // Convert Firestore Timestamp to DateTime
+    final bookingDateTs = data['bookingDate'] as Timestamp?;
+    final bookingDate = bookingDateTs != null ? bookingDateTs.toDate() : null;
+    final bookingTime = data['bookingTime'] ?? ''; // e.g., "8:00-9:00 AM"
+    final providerName = data['providerName'] ?? 'Service provider'; // If not assigned, fallback
+    final scheduleText = _formatSchedule(bookingDate, bookingTime);
+    final description = data['description'] ?? '';
+    final address = data['location'] ?? '';
+    // Get the image URL if it exists
+    final imageUrl = data['imageUrl'] as String?;
