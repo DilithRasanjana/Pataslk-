@@ -204,22 +204,24 @@ class _AddCardScreenState extends State<AddCardScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Your payment details are stored securely.\nBy adding a card, you won\'t be charged yet.',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                    height: 1.5,
-                  ),
-                ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Your payment details are stored securely.\nBy adding a card, you won\'t be charged yet.',
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
+                    ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () {
