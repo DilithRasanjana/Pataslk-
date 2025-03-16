@@ -8,9 +8,73 @@ import '../../utils/firebase_auth_helper.dart';
 import '../../utils/firebase_firestore_helper.dart';
 import './signup_screen.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class CustomerLoginScreen extends StatefulWidget {
+  const CustomerLoginScreen({super.key});
+  
+  @override
+  State<CustomerLoginScreen> createState() => _CustomerLoginScreenState();
+}
+  
+class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
+  final TextEditingController _phoneController = TextEditingController();
+  // Firebase Authentication helper instance
+  final FirebaseAuthHelper _authHelper = FirebaseAuthHelper();
+  // Firebase Firestore helper instance
+  final FirestoreHelper _firestoreHelper = FirestoreHelper();
+  bool _isLoading = false;
+  int _phoneAttempts = 0;
 
+  /// Formats the raw phone number to E.164 format for Firebase Authentication.
+  String _formatPhoneNumber(String raw) => FirebaseAuthHelper.formatPhoneNumber(raw);
+
+  /// Validates the phone number.
+  String? _validatePhone(String value) {
+    if (value.isEmpty) {
+      return 'Please enter your phone number';
+    }
+    // Expect exactly 9 digits.
+    final cleanDigits = value.replaceAll(RegExp(r'[^\d]'), '');
+    if (cleanDigits.length != 9) {
+      return 'Please enter a valid 9-digit mobile number';
+    }
+    return null;
+  }
+
+  /// Login using phone number with Firebase Authentication.
+  void _loginWithPhone() async {
+    final validation = _validatePhone(_phoneController.text);
+    if (validation != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(validation)),
+      );
+      return;
+    }
+    
+    String fullPhone = _formatPhoneNumber(_phoneController.text);
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Firebase Firestore: Check if a customer exists by phone number
+    bool exists = await _firestoreHelper.doesCustomerExistByPhone(phone: fullPhone);
+    if (!exists) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No customer found with this phone number. Please sign up.")),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("You'll receive an SMS with the verification code shortly."),
+        duration: Duration(seconds: 5),
+      ),
+    );
+    
   @override
   Widget build(BuildContext context) {
     return Scaffold(
