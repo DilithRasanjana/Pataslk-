@@ -8,8 +8,21 @@ import '../../utils/firebase_auth_helper.dart';
 import '../../utils/firebase_firestore_helper.dart';
 import './signup_screen.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class CustomerLoginScreen extends StatefulWidget {
+  const CustomerLoginScreen({super.key});
+  
+  @override
+  State<CustomerLoginScreen> createState() => _CustomerLoginScreenState();
+}
+  
+class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
+  final TextEditingController _phoneController = TextEditingController();
+  // Firebase Authentication helper instance
+  final FirebaseAuthHelper _authHelper = FirebaseAuthHelper();
+  // Firebase Firestore helper instance
+  final FirestoreHelper _firestoreHelper = FirestoreHelper();
+  bool _isLoading = false;
+  int _phoneAttempts = 0;
 
   @override
   Widget build(BuildContext context) {
