@@ -1,4 +1,9 @@
+// Firebase Firestore package for database operations
+import 'package:cloud_firestore/cloud_firestore.dart';
+// Firebase Authentication package for user authentication
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../auth/user_type_screen.dart';
 import 'home_screen.dart';
 import '../profile/profile_screen.dart';
@@ -7,6 +12,8 @@ import '../referral/refer_friend_screen.dart';
 import 'contact_us_screen.dart';
 import 'notification_screen.dart';
 import '../payment/payment_methods_screen.dart';
+// Helper utility for Firebase Firestore operations
+import '../../../utils/firebase_firestore_helper.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
