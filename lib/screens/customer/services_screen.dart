@@ -588,3 +588,50 @@ class _ServicesScreenState extends State<ServicesScreen> {
       ),
     );
   }
+
+   /// Approve job completion and mark status as completed in Firestore
+  Future<void> _approveCompletion(String bookingId) async {
+    try {
+      // Get the booking data from Firestore
+      final bookingDoc = await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(bookingId)
+          .get();
+          
+      if (bookingDoc.exists) {
+        final bookingData = bookingDoc.data() as Map<String, dynamic>;
+        final serviceName = bookingData['serviceName'] ?? 'Unknown Service';
+        final providerName = bookingData['providerName'] ?? 'Provider';
+        
+        // Update the booking status in Firestore
+        await FirebaseFirestore.instance
+            .collection('bookings')
+            .doc(bookingId)
+            .update({'status': 'Completed'});
+
+        // Create a notification in Firestore about the completion
+        await _createNotification(
+          title: 'Service Completed',
+          message: 'You have approved the completion of $serviceName by $providerName.',
+          bookingId: bookingId,
+          type: 'completed'
+        );
+            
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Job completion approved!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error approving completion: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to approve completion'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
