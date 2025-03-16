@@ -15,8 +15,11 @@ import '../payment/payment_methods_screen.dart';
 // Helper utility for Firebase Firestore operations
 import '../../../utils/firebase_firestore_helper.dart';
 
-class MenuScreen extends StatelessWidget {
-  const MenuScreen({super.key});
+class CustomerMenuScreen extends StatelessWidget {
+  const CustomerMenuScreen({super.key});
+
+  // Firebase Firestore: Collection name for customers
+  final String _customersCollection = 'customers';
 
   Future<void> _showLogoutDialog(BuildContext context) {
     return showDialog(
