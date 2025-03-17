@@ -295,3 +295,38 @@ class _ServiceProviderNotificationScreenState extends State<ServiceProviderNotif
       ),
     );
   }
+
+   // Firebase batch operation to mark multiple notifications as read
+  Future<void> _markNotificationsAsRead(List<QueryDocumentSnapshot> notifications) async {
+    final batch = FirebaseFirestore.instance.batch();
+    
+    for (final doc in notifications) {
+      final notificationData = doc.data() as Map<String, dynamic>;
+      if (notificationData['read'] != true) {
+        batch.update(doc.reference, {'read': true});
+      }
+    }
+    
+    await batch.commit();
+  }
+  
+  // Firebase delete operation to remove a notification
+  Future<void> _deleteNotification(String notificationId) async {
+    await FirebaseFirestore.instance
+        .collection('provider_notifications')
+        .doc(notificationId)
+        .delete();
+  }
+  
+  void _navigateToBookingDetails(String bookingId) async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ServiceProviderOrderDetailScreen(
+          bookingId: bookingId,
+        ),
+      ),
+    );
+  }
+}
+
