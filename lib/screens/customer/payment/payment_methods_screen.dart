@@ -87,7 +87,87 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     final isDefault = cardData['isDefault'] ?? false;
     final cardId = cardDoc.id;
 
-    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _selectedMethod == cardId ? const Color(0xFF0D47A1) : Colors.grey[300]!,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey[200]!,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: RadioListTile(
+        value: cardId,
+        groupValue: _selectedMethod,
+        onChanged: (value) {
+          setState(() {
+            _selectedMethod = value as String?;
+          });
+        },
+        title: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        _getCardIcon(cardType),
+                        color: Colors.blue[900],
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "•••• $lastFourDigits",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      if (isDefault) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Default',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.blue[900],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    cardholderName,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  Text(
+                    "Expires $expiryDate",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
   Widget _buildCreditCardOption() {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
