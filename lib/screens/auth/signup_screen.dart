@@ -97,16 +97,29 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
           setState(() {
             _isProcessing = false;
           });
-      
 
-      // Navigate to verification screen
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => const VerificationScreen(),
+          // Navigate to verification screen
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const VerificationScreen(),
         ),
       );
     }
   }
+        // Firebase Authentication: Handle verification errors
+        onError: (String error) {
+          setState(() {
+            _isProcessing = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error)),
+          );
+        },
+      );
+    }
+  } 
+
+      
 
   @override
   Widget build(BuildContext context) {
