@@ -195,6 +195,18 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     }
   }
 
+ IconData _getCardIcon(String cardType) {
+    switch (cardType) {
+      case 'Visa':
+        return Icons.credit_card;
+      case 'MasterCard':
+        return Icons.credit_card;
+      case 'Amex':
+        return Icons.credit_card;
+      default:
+        return Icons.credit_card;
+    }
+  }
 
   Widget _buildCreditCardOption() {
     return Container(
