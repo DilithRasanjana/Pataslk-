@@ -19,7 +19,7 @@ class ServiceProviderVerificationScreen extends StatefulWidget {
   final String? email;
   final String? phone;
   final String? jobRole;
-  final int? resendToken; // Optional resend token
+  final int? resendToken; // Added field for resend token
 
   const ServiceProviderVerificationScreen({
     super.key,
@@ -48,82 +48,201 @@ class _ServiceProviderVerificationScreenState extends State<ServiceProviderVerif
   // Firebase Firestore helper instance
   final FirestoreHelper _firestoreHelper = FirestoreHelper();
   bool _isVerifying = false;
-  bool _isResending = false;
-  String _errorMessage = '';
-
+  String? _errorMessage;
+  bool _canResend = false;
+  int _remainingSeconds = 60;
   Timer? _resendTimer;
-  int _resendSeconds = 60;
-  int? _localResendToken; // Local copy of resend token
-
+  int? _localResendToken; // Firebase token for resending verification code
+  String _currentVerificationId = "";
+  
   @override
   void initState() {
     super.initState();
+    // Log that we've entered the verification screen
+    debugPrint("Entered verification screen with ID: ${widget.verificationId}");
+    debugPrint("Phone: ${widget.phone}, Sign-up flow: ${widget.isSignUpFlow}");
+    
+    // Store the verification ID
+    _currentVerificationId = widget.verificationId;
+    
+    // Initialize _localResendToken from widget.
     _localResendToken = widget.resendToken;
+    
+    // Request focus on the first input field
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_focusNodes.isNotEmpty && mounted) {
+        FocusScope.of(context).requestFocus(_focusNodes[0]);
+      }
+    });
+    
     _startResendTimer();
-    debugPrint("Verification screen opened for phone: ${widget.phone}");
-  }
-
-  @override
-  void dispose() {
-    _resendTimer?.cancel();
-    for (var controller in _controllers) controller.dispose();
-    for (var node in _focusNodes) node.dispose();
-    super.dispose();
   }
 
   void _startResendTimer() {
     setState(() {
-      _resendSeconds = 60;
+      _canResend = false;
+      _remainingSeconds = 60;
     });
+    
     _resendTimer?.cancel();
     _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_resendSeconds > 0) {
-        setState(() {
-          _resendSeconds--;
-        });
-      } else {
+      if (!mounted) {
         timer.cancel();
+        return;
       }
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          _canResend = true;
+          timer.cancel();
+        }
+      });
     });
   }
 
+  @override
+  void dispose() {
+    for (var controller in _controllers) controller.dispose();
+    for (var node in _focusNodes) node.dispose();
+    _resendTimer?.cancel();
+    super.dispose();
+  }
+
   Future<void> _completeSignUp() async {
-    // Firebase Firestore: Save service provider data to 'serviceProviders' collection
-    if (widget.firstName != null &&
+    // Get current Firebase user after successful authentication
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null &&
+        widget.firstName != null &&
         widget.lastName != null &&
         widget.email != null &&
         widget.phone != null &&
         widget.jobRole != null) {
-      // Get current Firebase user after successful authentication
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        // Firebase Firestore: Save user profile data to database
+      try {
+        final userData = {
+          'firstName': widget.firstName,
+          'lastName': widget.lastName,
+          'email': widget.email,
+          'phone': widget.phone,
+          'jobRole': widget.jobRole,
+          'userType': 'serviceProvider',
+          'createdAt': FieldValue.serverTimestamp(), // Firestore server timestamp
+          'lastLogin': FieldValue.serverTimestamp(),
+        };
+        
+        // Log the data being saved
+        debugPrint("Saving user data to Firestore: $userData");
+        
+        // Firebase Firestore: Save user data to 'serviceProviders' collection
         await _firestoreHelper.saveUserData(
           collection: 'serviceProviders',
           uid: user.uid,
-          data: {
-            'firstName': widget.firstName,
-            'lastName': widget.lastName,
-            'email': widget.email,
-            'phone': widget.phone,
-            'jobRole': widget.jobRole,
-            'userType': 'serviceProvider',
-            'createdAt': FieldValue.serverTimestamp(), // Firestore server timestamp
-          },
+          data: userData,
         );
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-              builder: (context) => const ServiceProviderHomeScreen()),
-        );
-      } else {
+        
+        debugPrint("User profile created successfully, navigating to home screen");
+        
+        if (mounted) {
+          // Clear the entire navigation stack and go to home screen
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const ServiceProviderHomeScreen()),
+            (route) => false, // Remove all previous routes
+          );
+        }
+      } catch (e) {
+        debugPrint("Error creating user profile: $e");
         setState(() {
-          _errorMessage = "User not signed in or missing details";
+          _errorMessage = "Failed to create profile: ${e.toString()}";
           _isVerifying = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("User not signed in")),
+      }
+    } else {
+      setState(() {
+        _errorMessage = "User not signed in or missing details";
+        _isVerifying = false;
+      });
+    }
+  }
+
+  // Extracted navigation to a separate method for consistency
+  void _navigateToHomeScreen() {
+    // Add a small delay to prevent potential navigation conflicts
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        // Use pushAndRemoveUntil to clear the navigation stack
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const ServiceProviderHomeScreen()),
+          (route) => false,
         );
       }
+    });
+  }
+
+  void _resendCode() async {
+    if (!_canResend) return;
+    
+    setState(() {
+      _isVerifying = true;
+      _errorMessage = null;
+    });
+    
+    if (widget.phone == null) {
+      setState(() {
+        _errorMessage = "Phone number not available for resend";
+        _isVerifying = false;
+      });
+      return;
+    }
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Requesting a new verification code..."),
+        duration: Duration(seconds: 3),
+      ),
+    );
+    
+    try {
+      // Clear old input fields
+      for (var controller in _controllers) {
+        controller.clear();
+      }
+      
+      // Firebase Authentication: Resend phone verification code
+      await _authHelper.verifyPhoneNumber(
+        phoneNumber: widget.phone!,
+        resendToken: _localResendToken, // Firebase token to optimize resend process
+        // Firebase Authentication: Handle successful SMS code sending
+        onCodeSent: (String verificationId, int? forceResendingToken) {
+          setState(() {
+            _isVerifying = false;
+            _localResendToken = forceResendingToken; // update local Firebase token
+            _currentVerificationId = verificationId; // update verification ID for new code
+          });
+          
+          if (_focusNodes.isNotEmpty) {
+            _focusNodes[0].requestFocus();
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Verification code resent successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          _startResendTimer();
+        },
+        // Firebase Authentication: Handle verification errors
+        onError: (String error) {
+          setState(() {
+            _errorMessage = error;
+            _isVerifying = false;
+          });
+        },
+      );
+    } catch (e) {
+      setState(() {
+        _isVerifying = false;
+        _errorMessage = 'Error requesting code: ${e.toString()}';
+      });
     }
   }
 
@@ -131,121 +250,98 @@ class _ServiceProviderVerificationScreenState extends State<ServiceProviderVerif
     String smsCode = _controllers.map((c) => c.text).join();
     if (smsCode.length != 6) {
       setState(() {
-        _errorMessage = "Please enter the complete 6-digit code";
+        _errorMessage = "Please enter all 6 digits of your verification code";
       });
       return;
     }
 
     setState(() {
       _isVerifying = true;
-      _errorMessage = '';
+      _errorMessage = null;
     });
 
     try {
-      // Firebase Authentication: Verify OTP code and sign in the user
+      debugPrint("Attempting to verify code with verification ID: $_currentVerificationId");
+      
+      // Firebase Authentication: Verify the SMS code and sign in the user
       var result = await _authHelper.signInWithOTP(
-        verificationId: widget.verificationId,
+        verificationId: _currentVerificationId,
         smsCode: smsCode,
       );
 
       if (result != null) {
         bool isNewUser = result["isNewUser"] as bool;
+        User? user = result["user"] as User?;
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Verification successful! Redirecting...'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
+        
+        // Also update lastLogin for existing users
+        if (!isNewUser && user != null) {
+          await _firestoreHelper.saveUserData(
+            collection: 'serviceProviders',
+            uid: user.uid,
+            data: {
+              'lastLogin': FieldValue.serverTimestamp(),
+            },
+          );
+          debugPrint("Updated lastLogin for existing user");
+        }
+        
         if (widget.isSignUpFlow && isNewUser) {
-          // Firebase: Complete sign up flow for new users by saving data to Firestore
+          debugPrint("New user sign up - creating profile");
           await _completeSignUp();
         } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-                builder: (context) => const ServiceProviderHomeScreen()),
-          );
+          debugPrint("Existing user login - navigating to home screen now");
+          if (mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const ServiceProviderHomeScreen()),
+              (route) => false, // Remove all previous routes
+            );
+          }
         }
       } else {
         setState(() {
-          _errorMessage = 'Verification failed. The code may be incorrect.';
+          _isVerifying = false;
+          _errorMessage = 'Verification failed. Please check your code and try again.';
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Verification failed. Please try again.'),
-            backgroundColor: Colors.red,
-          ),
-        );
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
+      debugPrint("Verification error: $e");
       setState(() {
         _isVerifying = false;
-      });
-    }
-  }
-
-  void _resendCode() async {
-    if (widget.phone == null) {
-      setState(() {
-        _errorMessage = 'Phone number is missing';
-      });
-      return;
-    }
-    
-    setState(() {
-      _isResending = true;
-      _errorMessage = '';
-    });
-
-    try {
-      // Firebase Authentication: Resend verification code to the user's phone
-      await _authHelper.verifyPhoneNumber(
-        phoneNumber: widget.phone!,
-        resendToken: _localResendToken,
-        onCodeSent: (String newVerificationId, int? forceResendingToken) {
-          // Firebase: Handle successful code resend
-          setState(() {
-            _isResending = false;
-            _localResendToken = forceResendingToken;
-          });
-          for (var controller in _controllers) controller.clear();
-          if (_focusNodes.isNotEmpty) _focusNodes[0].requestFocus();
-          _startResendTimer();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Verification code resent successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        },
-        onError: (String error) {
-          // Firebase: Handle verification error
-          setState(() {
-            _isResending = false;
-            _errorMessage = error;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(error), backgroundColor: Colors.red),
-          );
-        },
-      );
-    } catch (e) {
-      setState(() {
-        _isResending = false;
         _errorMessage = e.toString();
       });
+      
+      // Clear fields so user can try again
+      for (var controller in _controllers) {
+        controller.clear();
+      }
+      if (_focusNodes.isNotEmpty) {
+        _focusNodes[0].requestFocus();
+      }
     }
   }
 
   void _onTextChanged(String value, int index) {
-    if (value.length == 1 && index < 5) {
-      _focusNodes[index + 1].requestFocus();
-    }
-    if (value.length == 1 && index == 5) {
-      _verifyCode();
+    if (value.length == 1) {
+      // Move to next field
+      if (index < 5) {
+        _focusNodes[index + 1].requestFocus();
+      } else {
+        // Last field, try verification
+        _verifyCode();
+      }
+    } else if (value.isEmpty && index > 0) {
+      // Handle backspace - move to previous field
+      _focusNodes[index - 1].requestFocus();
     }
   }
 
@@ -256,21 +352,22 @@ class _ServiceProviderVerificationScreenState extends State<ServiceProviderVerif
         title: const Text("Verify Phone"),
         backgroundColor: Colors.blue,
       ),
-      body: Padding(
+      // Fix the overflow by using SingleChildScrollView
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Verification Code',
-              style: TextStyle(
-                  fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
+              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             Text(
-              'Enter the 6-digit code sent to ${widget.phone ?? "your mobile"}',
-              style:
-                  const TextStyle(fontSize: 16, color: Colors.black54),
+              widget.phone != null 
+                  ? 'Enter the 6-digit code sent to ${widget.phone}'
+                  : 'Enter the 6-digit code sent to your mobile number.',
+              style: const TextStyle(fontSize: 16, color: Colors.black54),
             ),
             const SizedBox(height: 40),
             Row(
@@ -291,13 +388,11 @@ class _ServiceProviderVerificationScreenState extends State<ServiceProviderVerif
                       counterText: "",
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide:
-                            BorderSide(color: Colors.grey.shade300),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                            color: Theme.of(context).primaryColor),
+                        borderSide: BorderSide(color: Theme.of(context).primaryColor),
                       ),
                       filled: true,
                       fillColor: Colors.grey.shade100,
@@ -308,32 +403,43 @@ class _ServiceProviderVerificationScreenState extends State<ServiceProviderVerif
                 ),
               ),
             ),
-            if (_errorMessage.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Text(
-                  _errorMessage,
-                  style:
-                      const TextStyle(color: Colors.red, fontSize: 14),
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            const SizedBox(height: 32),
+            ],
+            const SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(_resendSeconds > 0
-                    ? "Resend code in $_resendSeconds s"
-                    : "Didn't receive a code?"),
-                if (_resendSeconds == 0)
+                Text(_canResend ? "Didn't receive a code? " : "Resend code in ${_remainingSeconds}s"),
+                if (_canResend)
                   TextButton(
-                    onPressed: !_isResending ? _resendCode : null,
-                    child: _isResending
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Resend'),
+                    onPressed: _canResend && !_isVerifying ? _resendCode : null,
+                    child: Text(
+                      'Resend',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: _canResend && !_isVerifying ? Theme.of(context).primaryColor : Colors.grey,
+                      ),
+                    ),
                   ),
               ],
             ),
@@ -343,22 +449,43 @@ class _ServiceProviderVerificationScreenState extends State<ServiceProviderVerif
               child: ElevatedButton(
                 onPressed: _isVerifying ? null : _verifyCode,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF3F4F6),
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                  disabledBackgroundColor: Colors.grey,
                 ),
                 child: _isVerifying
-                    ? const CircularProgressIndicator()
+                    ? const SizedBox(
+                        width: 24, 
+                        height: 24, 
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          strokeWidth: 2,
+                        ),
+                      )
                     : const Text(
                         'Verify',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
               ),
             ),
+            // Display phone number and edit option
+            const SizedBox(height: 30),
+            if (widget.phone != null)
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      'Verifying: ${widget.phone}',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Change Phone Number'),
+                    )
+                  ],
+                ),
+              ),
           ],
         ),
       ),
