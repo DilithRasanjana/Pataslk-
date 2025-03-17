@@ -432,10 +432,21 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
             const SizedBox(height: 16),
             // Pay Order Button
             ElevatedButton(
-              onPressed: () {
-                if (selectedDate == null ||
-                    selectedTime == null ||
-                    selectedAddress == null) {
+                    onPressed:_addPaymentMethod,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[900],
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),  
+                    ),
+                    child: const Text(
+                      'Pay order',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),        )
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Please fill in all required fields'),
