@@ -4,10 +4,85 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../home/service_provider_home_screen.dart';
 
-class ServiceProviderOrderDetailScreen extends StatelessWidget {
-  const ServiceProviderOrderDetailScreen({Key? key}) : super(key: key);
+class ServiceProviderOrderDetailScreen extends StatefulWidget {
+  final String bookingId;
 
-  void _showConfirmationDialog(BuildContext context) {
+  const ServiceProviderOrderDetailScreen({Key? key, required this.bookingId})
+      : super(key: key);
+
+  @override
+  State<ServiceProviderOrderDetailScreen> createState() =>
+      _ServiceProviderOrderDetailScreenState();
+}
+
+class _ServiceProviderOrderDetailScreenState
+    extends State<ServiceProviderOrderDetailScreen> {
+  // Firebase Auth: Get current authenticated user
+  final User? _currentUser = FirebaseAuth.instance.currentUser;
+  DocumentSnapshot? _bookingDoc;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchBooking();
+  }
+
+  /// Fetch the booking document to display its details.
+  Future<void> _fetchBooking() async {
+    setState(() => _isLoading = true);
+    try {
+      // Firebase Firestore: Get booking document by ID
+      final doc = await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(widget.bookingId)
+          .get();
+      if (doc.exists) {
+        setState(() => _bookingDoc = doc);
+      }
+    } catch (e) {
+      print('Error fetching booking: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  /// Accept the job => update the booking doc with provider info and status.
+  Future<void> _acceptJob() async {
+    if (_currentUser == null || _bookingDoc == null) return;
+    try {
+      // Firebase Firestore: Get provider data from serviceProviders collection
+      final providerDoc = await FirebaseFirestore.instance
+          .collection('serviceProviders')
+          .doc(_currentUser!.uid)
+          .get();
+      final providerData = providerDoc.data() as Map<String, dynamic>?;
+
+      final providerName = providerData != null
+          ? providerData['firstName'] ?? 'Unknown'
+          : 'Unknown';
+
+      // Firebase Firestore: Update booking document with provider information
+      await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(widget.bookingId)
+          .update({
+        'provider_id': _currentUser!.uid,
+        'providerName': providerName,
+        'status': 'InProgress',
+      });
+
+      _showConfirmationDialog();
+    } catch (e) {
+      print('Error accepting job: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to accept job.')),
+      );
+    }
+  }
+
+  /// Show a success dialog: "Job Confirmed!"
+  void _showConfirmationDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -36,7 +111,7 @@ class ServiceProviderOrderDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 const Text(
-                  'Job Confirmed !',
+                  'Job Confirmed!',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
