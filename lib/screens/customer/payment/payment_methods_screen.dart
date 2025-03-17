@@ -250,6 +250,13 @@ void _showDeleteCardDialog(String cardId, String lastFourDigits) {
           .doc(cardId)
           .delete();
 
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Card deleted successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      
   Widget _buildCreditCardOption() {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
