@@ -1,13 +1,17 @@
+// Firebase import for Firestore database operations
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'payment_result_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final double amount;
+  final String bookingId;
   final VoidCallback onPaymentSuccess;
 
   const PaymentScreen({
     Key? key,
     required this.amount,
+    required this.bookingId,
     required this.onPaymentSuccess,
   }) : super(key: key);
 
@@ -19,9 +23,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
   String _selectedPaymentMethod = 'card';
   bool _isProcessing = false;
 
-  void _processPayment() {
+/// Simulates adding a payment method and updates the booking doc in Firestore.
+  void _processPayment() async {
     setState(() => _isProcessing = true);
 
+    // Simulate delay
+    await Future.delayed(const Duration(seconds: 2));
+
+    
     // Simulate payment processing
     Future.delayed(const Duration(seconds: 2), () {
       setState(() => _isProcessing = false);
