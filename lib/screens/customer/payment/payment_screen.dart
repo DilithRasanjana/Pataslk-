@@ -39,12 +39,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
       'paymentAddedAt': Timestamp.now(), // Using Firebase Timestamp for server-side timestamp
       // We keep 'status': 'Pending' until the provider completes the job.
     });    
-    // Simulate payment processing
-    Future.delayed(const Duration(seconds: 2), () {
+
       setState(() => _isProcessing = false);
       _showPaymentResult(true);
-    });
-  }
+    }
 
   void _showPaymentResult(bool success) {
     showModalBottomSheet(
@@ -58,6 +56,46 @@ class _PaymentScreenState extends State<PaymentScreen> {
           Navigator.pop(context); // Close bottom sheet
           widget.onPaymentSuccess(); // Call the success callback
         },
+      ),
+    );
+  }
+
+  Widget _buildPaymentOption(String title, String imageUrl, String value) {
+    return InkWell(
+      onTap: () => setState(() => _selectedPaymentMethod = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: _selectedPaymentMethod == value
+                ? Colors.blue[900]!
+                : Colors.grey[300]!,
+          ),
+        ),
+        child: Row(
+          children: [
+            Radio(
+              value: value,
+              groupValue: _selectedPaymentMethod,
+              onChanged: (val) {
+                setState(() => _selectedPaymentMethod = val.toString());
+              },
+              activeColor: Colors.blue[900],
+            ),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            ),
+            const Spacer(),
+            SizedBox(
+              height: 32,
+              child: Image.network(imageUrl, fit: BoxFit.contain),
+            ),
+          ],
+        ),
       ),
     );
   }
