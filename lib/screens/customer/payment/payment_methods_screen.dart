@@ -257,6 +257,22 @@ void _showDeleteCardDialog(String cardId, String lastFourDigits) {
         ),
       );
       
+      // Reset selected method if it was the deleted card
+      if (_selectedMethod == cardId) {
+        setState(() => _selectedMethod = null);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to delete card: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   Widget _buildCreditCardOption() {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
