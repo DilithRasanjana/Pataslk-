@@ -1,5 +1,5 @@
+// This file doesn't use Firebase directly - it's a UI component for displaying payment results
 import 'package:flutter/material.dart';
-import '../booking/order_status_screen.dart';
 
 class PaymentResultScreen extends StatelessWidget {
   final bool success;
@@ -22,7 +22,7 @@ class PaymentResultScreen extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Status Icon
+          //Icon container
           Container(
             width: 64,
             height: 64,
@@ -39,7 +39,9 @@ class PaymentResultScreen extends StatelessWidget {
           const SizedBox(height: 16),
           // Status Text
           Text(
-            success ? 'Payment Successful!' : 'Payment Failed!',
+            success 
+            ? 'Payment Successful!' 
+            : 'Payment Failed!',
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -48,7 +50,7 @@ class PaymentResultScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             success
-                ? 'Thank you for choosing our services.\nYour booking has been confirmed!'
+                ? 'Your payment method has been added.'
                 : 'Please try again or contact support.',
             textAlign: TextAlign.center,
             style: TextStyle(
