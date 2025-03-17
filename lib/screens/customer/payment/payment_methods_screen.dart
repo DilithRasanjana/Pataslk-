@@ -232,7 +232,24 @@ void _showDeleteCardDialog(String cardId, String lastFourDigits) {
       },
     );
   }
-  
+
+   // Deletes a card document from Firestore
+  Future<void> _deleteCard(String cardId) async {
+    setState(() => _isLoading = true);
+    
+    try {
+      // Get current authenticated user
+      final user = _auth.currentUser;
+      if (user == null) return;
+      
+      // Firebase Firestore delete operation - removes payment method document
+      await _firestore
+          .collection('customers')
+          .doc(user.uid)
+          .collection('paymentMethods')
+          .doc(cardId)
+          .delete();
+
   Widget _buildCreditCardOption() {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
