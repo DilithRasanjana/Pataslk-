@@ -23,7 +23,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   String _selectedPaymentMethod = 'card';
   bool _isProcessing = false;
 
-/// Simulates adding a payment method and updates the booking doc in Firestore.
+  /// Simulates adding a payment method and updates the booking doc in Firestore.
   void _processPayment() async {
     setState(() => _isProcessing = true);
 
@@ -38,11 +38,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
       'paymentMethod': _selectedPaymentMethod,
       'paymentAddedAt': Timestamp.now(), // Using Firebase Timestamp for server-side timestamp
       // We keep 'status': 'Pending' until the provider completes the job.
-    });    
+    });
 
-      setState(() => _isProcessing = false);
-      _showPaymentResult(true);
-    }
+    setState(() => _isProcessing = false);
+    _showPaymentResult(true);
+  }
 
   void _showPaymentResult(bool success) {
     showModalBottomSheet(
@@ -54,7 +54,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         success: success,
         onSuccess: () {
           Navigator.pop(context); // Close bottom sheet
-          widget.onPaymentSuccess(); // Call the success callback
+          widget.onPaymentSuccess(); // Callback
         },
       ),
     );
@@ -118,7 +118,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Card Image
+              // Card image
               Container(
                 height: 200,
                 decoration: BoxDecoration(
@@ -131,19 +131,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Payment Methods Section
               const Text(
                 'or pay with',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Colors.grey, fontSize: 16),
               ),
               const SizedBox(height: 24),
 
-              // Payment Options
+              // Payment options
               _buildPaymentOption(
                 'PayPal',
                 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/paypal.png',
@@ -163,26 +158,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Amount Display
+              // Amount
               Text(
                 'Total Amount: Rs ${widget.amount.toStringAsFixed(2)}',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
 
-              // Pay Button
+              // Button
               ElevatedButton(
                 onPressed: _isProcessing ? null : _processPayment,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue[900],
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                      borderRadius: BorderRadius.circular(8)),
                 ),
                 child: _isProcessing
                     ? const SizedBox(
@@ -190,12 +181,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                     : const Text(
-                        'Pay Now',
+                        'Add Payment Method',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -209,4 +199,4 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
     );
   }
-
+}
