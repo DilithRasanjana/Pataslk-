@@ -134,259 +134,378 @@ class _ServiceProviderHomeScreenState extends State<ServiceProviderHomeScreen> {
               ),
             ],
           ),
-      body: SingleChildScrollView(
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                // Greeting / Banner
+                _buildBannerSection(firstName),
+                // Now build the "Pending" jobs that match the provider's job role
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Pending Bookings for $jobRole',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildBookingsList(jobRole),
+              ],
+            ),
+          ),
+          bottomNavigationBar: _buildBottomNavigationBar(),
+        );
+      },
+    );
+  }
+
+  /// Builds the greeting/banner section at the top.
+  Widget _buildBannerSection(String firstName) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'HELLO, $firstName',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Text('👋', style: TextStyle(fontSize: 16)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.work, color: Colors.brown, size: 24),
+              const SizedBox(width: 8),
+              Text(
+                'Get More\nCustomers & Earn\nMore!',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue[900],
+                  height: 1.2,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Center(
+            child: Image.asset(
+              'assets/Assets-main/Assets-main/service pro home.png',
+              height: 200,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Builds a list of "Pending" bookings matching the provider's jobRole.
+  Widget _buildBookingsList(String jobRole) {
+    // Firebase Firestore query for filtered bookings with real-time updates
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('bookings')
+          .where('serviceName', isEqualTo: jobRole)
+          .where('status', isEqualTo: 'Pending')
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Center(
+            child: Text("Error fetching bookings."),
+          );
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              height: 200,
+              alignment: Alignment.center,
+              child: Text(
+                'No Pending Bookings for $jobRole',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ),
+          );
+        }
+
+        final docs = snapshot.data!.docs;
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final doc = docs[index];
+            return _buildBookingCard(doc);
+          },
+        );
+      },
+    );
+  }
+
+  /// Builds a card for a single booking doc.
+  Widget _buildBookingCard(DocumentSnapshot doc) {
+    // Convert Firestore document to Map
+    final data = doc.data() as Map<String, dynamic>;
+
+    final referenceCode = data['referenceCode'] ?? doc.id;
+    // Parse Firestore timestamp to DateTime
+    final bookingDateTs = data['bookingDate'] as Timestamp?;
+    final bookingDate =
+        bookingDateTs != null ? bookingDateTs.toDate() : DateTime.now();
+    final bookingTime = data['bookingTime'] ?? '';
+    final description = data['description'] ?? 'No description';
+    final location = data['location'] ?? 'Unknown location';
+    final imageUrl = data['imageUrl'] as String?; // Get image URL from document
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(20),
+            // Display image if available
+            if (imageUrl != null && imageUrl.isNotEmpty)
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  height: 180,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: Colors.grey[200],
+                    height: 180,
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    height: 180,
+                    color: Colors.grey[200],
+                    child: const Center(
+                      child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
+                    ),
+                  ),
+                ),
+              ),
+            
+            Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Title + reference
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'HELLO USER',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[600],
+                        data['serviceName'] ?? 'Unknown Service',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        '👋',
+                      Text(
+                        'Ref: #${referenceCode.toString().substring(0, 6)}',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 12,
+                          color: Colors.grey[600],
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
+                  // Date/Time
                   Row(
                     children: [
-                      const Icon(
-                        Icons.work,
-                        color: Colors.brown,
-                        size: 24,
-                      ),
+                      const Icon(Icons.calendar_today_outlined,
+                          size: 16, color: Colors.grey),
                       const SizedBox(width: 8),
                       Text(
-                        'Get More\nCustomers & Earn\nMore!',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[900],
-                          height: 1.2,
+                        _formatBookingTime(bookingDate, bookingTime),
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Location
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          location,
+                          style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  Center(
-                    child: Image.asset(
-                      'assets/Assets-main/Assets-main/service pro home.png', // Updated home image
-                      height: 200,
-                      fit: BoxFit.contain,
+                  const SizedBox(height: 8),
+                  // Description
+                  Text(
+                    description,
+                    style: TextStyle(fontSize: 14, color: Colors.grey[800]),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Navigate to order detail with doc.id
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ServiceProviderOrderDetailScreen(
+                              bookingId: doc.id,
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[900],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'View Details',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            // Job Card
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Image section
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12),
-                      ),
-                      child: Image.asset(
-                        'assets/Assets-main/Assets-main/plumbing service.jpg', // Updated plumbing service image
-                        height: 200,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue[100],
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text(
-                              'Upcoming Event',
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'Have to repair a pipe.',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.location_on,
-                                color: Colors.grey,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '24,karidivana road,pitakotte',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.calendar_today,
-                                color: Colors.grey,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '2023-09-06',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              const Icon(
-                                Icons.access_time,
-                                color: Colors.grey,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '10.00 - 17.00',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const ServiceProviderOrderDetailScreen(),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue[900],
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              'Join',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFF0D47A1),
-        unselectedItemColor: Colors.grey,
-        currentIndex: 0,
-        onTap: (index) {
-          if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ServiceProviderServicesScreen(),
-              ),
-            );
-          } else if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ServiceProviderNotificationScreen(),
-              ),
-            );
-          } else if (index == 3) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ServiceProviderMenuScreen(),
-              ),
-            );
-          }
-        },
-        items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset(
-              'assets/Assets-main/Assets-main/service png.png', // Updated services icon
-              width: 24,
-              height: 24,
-              color: Colors.grey,
+    );
+  }
+
+  /// Helper to format the date/time from booking doc.
+  String _formatBookingTime(DateTime date, String bookingTime) {
+    final dateStr = '${date.day}-${date.month}-${date.year}';
+    if (bookingTime.isEmpty) return dateStr;
+    return '$bookingTime, $dateStr';
+  }
+
+  /// Build bottom navigation bar with notification badge
+  Widget _buildBottomNavigationBar() {
+    // Firebase Firestore stream for unread notifications count
+    return StreamBuilder<QuerySnapshot>(
+      stream: _notificationStream,
+      builder: (context, snapshot) {
+        int notificationCount = 0;
+        if (snapshot.hasData && !snapshot.hasError) {
+          notificationCount = snapshot.data!.docs.length;
+        }
+
+        return BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          selectedItemColor: const Color(0xFF0D47A1),
+          unselectedItemColor: Colors.grey,
+          currentIndex: _selectedIndex,
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+            if (index == 1) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ServiceProviderServicesScreen(),
+                ),
+              );
+            } else if (index == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const ServiceProviderNotificationScreen(),
+                ),
+              );
+            } else if (index == 3) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ServiceProviderMenuScreen(),
+                ),
+              );
+            }
+          },
+          items: [
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
             ),
-            activeIcon: Image.asset(
-              'assets/Assets-main/Assets-main/service png.png', // Updated services active icon
-              width: 24,
-              height: 24,
-              color: const Color(0xFF0D47A1),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.assignment),
+              label: 'Services',
             ),
-            label: 'Services',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notifications',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Menu',
-          ),
-        ],
-      ),
+            BottomNavigationBarItem(
+              icon: Stack(
+                children: [
+                  const Icon(Icons.notifications_outlined),
+                  if (notificationCount > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(1),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 12,
+                          minHeight: 12,
+                        ),
+                        child: Text(
+                          notificationCount > 9 ? '9+' : '$notificationCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              label: 'Notifications',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.menu),
+              label: 'Menu',
+            ),
+          ],
+        );
+      },
     );
   }
 }
