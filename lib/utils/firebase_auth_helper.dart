@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 /// Helper class for Firebase Authentication operations
 class FirebaseAuthHelper {
@@ -7,25 +8,31 @@ class FirebaseAuthHelper {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   
   /// Validates and formats a phone number to E.164 format
-  static String formatPhoneNumber(String phone) {
-    // Remove any non-digit characters
-    final digits = phone.replaceAll(RegExp(r'[^\d]'), '');
+  static String formatPhoneNumber(String raw) {
+    // First remove all spaces, dashes, and parentheses
+    String trimmed = raw.trim().replaceAll(RegExp(r'\s+|-|\(|\)'), '');
     
-    // Handle Sri Lankan phone numbers (9 digits expected)
-    if (digits.length == 9) {
-      return '+94$digits'; // Add Sri Lanka country code
+    // Handle case where user added country code variations
+    if (trimmed.startsWith('94')) {
+      trimmed = trimmed.substring(2);
+    } else if (trimmed.startsWith('+94')) {
+      trimmed = trimmed.substring(3);
+    } else if (trimmed.startsWith('0')) {
+      // Remove leading zero if present (common in local format)
+      trimmed = trimmed.substring(1);
     }
     
-    // If it already starts with country code
-    if (phone.startsWith('+')) {
-      return phone;
+    // Ensure the number is properly formatted with country code
+    if (trimmed.length == 9) { // Valid Sri Lankan numbers without country code
+      return '+94$trimmed';
+    } else {
+      // In case of any other format, still try to add country code
+      debugPrint("Warning: Unusual phone number format: $trimmed");
+      return '+94$trimmed';
     }
-    
-    // Default case, assume Sri Lanka and add country code
-    return '+94$digits';
   }
 
-  /// Initiates phone number verification process
+  /// Initiates phone number verification process with enhanced error handling
   Future<void> verifyPhoneNumber({
     required String phoneNumber,
     required Function(String verificationId, int? forceResendingToken) onCodeSent,
@@ -34,39 +41,43 @@ class FirebaseAuthHelper {
   }) async {
     try {
       final formattedPhone = formatPhoneNumber(phoneNumber);
-      debugPrint("Sending verification code to: $formattedPhone");
+      debugPrint("🔔 Attempting to verify phone: $formattedPhone");
       
-      // Firebase Auth: Start phone verification process
+      // Firebase Auth: Start phone verification process with improved settings
       await _auth.verifyPhoneNumber(
         phoneNumber: formattedPhone,
         timeout: const Duration(seconds: 60),
         forceResendingToken: resendToken,
+        
         verificationCompleted: (PhoneAuthCredential credential) {
-          // Firebase Auth: Auto-verification callback (ignored in manual flow)
-          debugPrint("Auto verification completed. (Manual flow, so ignoring auto sign-in.)");
+          debugPrint("🔔 Auto verification completed (not using for UX consistency)");
+          // Not auto-signing in for more consistent UX across platforms
         },
+        
         verificationFailed: (FirebaseAuthException e) {
-          // Firebase Auth: Error callback for verification failures
-          debugPrint("Verification failed: ${e.code} - ${e.message}");
+          debugPrint("🔔 Verification failed: ${e.code} - ${e.message}");
           onError(_getReadableError(e));
         },
+        
         codeSent: (String verificationId, int? forceResendingToken) {
-          // Firebase Auth: Successful SMS code sent callback
-          debugPrint("Verification code sent to $formattedPhone");
+          debugPrint("🔔 SMS code sent to $formattedPhone");
+          debugPrint("🔔 Verification ID: $verificationId");
+          
+          // Ensure we call the callback
           onCodeSent(verificationId, forceResendingToken);
         },
+        
         codeAutoRetrievalTimeout: (String verificationId) {
-          // Firebase Auth: Timeout callback for SMS auto-retrieval
-          debugPrint("Auto retrieval timeout. Verification ID: $verificationId");
+          debugPrint("🔔 SMS auto-retrieval timed out for ID: $verificationId");
         },
       );
     } catch (e) {
-      debugPrint("Error in verifyPhoneNumber: $e");
+      debugPrint("🔔 Error in verifyPhoneNumber: $e");
       onError("An unexpected error occurred. Please try again.");
     }
   }
 
-  /// Signs in user with verification code (OTP)
+  /// Signs in user with verification code (OTP) with improved error handling
   Future<Map<String, dynamic>?> signInWithOTP({
     required String verificationId,
     required String smsCode,
@@ -76,19 +87,29 @@ class FirebaseAuthHelper {
         debugPrint("Error: Invalid verificationId or smsCode");
         return null;
       }
-      // Firebase Auth: Create credential from verification ID and SMS code
+      
+      debugPrint("Attempting to sign in with verification code");
+      
+      // Create credential from verification ID and SMS code
       PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: verificationId,
         smsCode: smsCode,
       );
-      // Firebase Auth: Sign in with credential
+      
+      // Sign in with credential
       UserCredential userCredential = await _auth.signInWithCredential(credential);
       bool isNewUser = userCredential.additionalUserInfo?.isNewUser ?? false;
       debugPrint("Sign in successful. User: ${userCredential.user?.uid}, isNewUser: $isNewUser");
-      return {"user": userCredential.user, "isNewUser": isNewUser};
+      return {
+        "user": userCredential.user, 
+        "isNewUser": isNewUser
+      };
     } catch (e) {
       debugPrint("Error in signInWithOTP: $e");
-      return null;
+      if (e is FirebaseAuthException) {
+        throw _getReadableError(e);
+      }
+      throw "Failed to verify code. Please try again.";
     }
   }
   
@@ -101,8 +122,17 @@ class FirebaseAuthHelper {
         case 'quota-exceeded':
           return 'SMS quota exceeded. Please try again later.';
         case 'too-many-requests':
-          return 'Too many requests. Please try again later.';
-        // ...existing code for other error cases...
+          return 'Too many attempts. Please try again after some time.';
+        case 'session-expired':
+          return 'The verification code has expired. Please request a new one.';
+        case 'invalid-verification-code':
+          return 'The verification code is incorrect. Please check and try again.';
+        case 'invalid-verification-id':
+          return 'The verification session has expired. Please request a new code.';
+        case 'network-request-failed':
+          return 'Network error. Please check your connection and try again.';
+        case 'app-not-authorized':
+          return 'This device is not authorized. Please use a different device.';
         default:
           return error.message ?? "Verification failed. Please try again later.";
       }
@@ -110,9 +140,23 @@ class FirebaseAuthHelper {
     return error.toString();
   }
   
+  /// Check if a user is currently authenticated
+  bool isAuthenticated() {
+    return _auth.currentUser != null;
+  }
+  
+  /// Get the current user
+  User? getCurrentUser() {
+    return _auth.currentUser;
+  }
+  
+  /// Listen to authentication state changes
+  Stream<User?> authStateChanges() {
+    return _auth.authStateChanges();
+  }
+
   /// Signs out the current user
   Future<void> signOut() async {
-    // Firebase Auth: Sign out current user
     await _auth.signOut();
   }
 }
