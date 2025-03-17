@@ -168,6 +168,24 @@ class _ServiceProviderVerificationScreenState
             ),
           );
         },
+        onError: (String error) {
+          // Firebase: Handle verification error
+          setState(() {
+            _isResending = false;
+            _errorMessage = error;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error), backgroundColor: Colors.red),
+          );
+        },
+      );
+    } catch (e) {
+      setState(() {
+        _isResending = false;
+        _errorMessage = e.toString();
+      });
+    }
+  }
         
 
 
