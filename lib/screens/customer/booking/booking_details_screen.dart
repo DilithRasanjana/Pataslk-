@@ -168,6 +168,20 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
       return;
     }
 
+     setState(() {
+      _isLoading = true;
+    });
+    
+    // Firebase: Create booking record in Firestore
+    String? bookingId = await _createBooking();
+    
+    // Check if widget is still mounted before using context
+    if (!_isMounted) return;
+    
+    setState(() {
+      _isLoading = false;
+    }); 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
