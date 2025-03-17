@@ -1,21 +1,31 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
-import 'verification_screen.dart';
+import 'package:flutter/services.dart';
+import './login_screen.dart';
+// Helper utility for Firebase Authentication operations
+import '../../utils/firebase_auth_helper.dart';
+// Helper utility for Firebase Firestore database operations
+import '../../utils/firebase_firestore_helper.dart';
+import './verification_screen.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
-
+class CustomerSignUpScreen extends StatefulWidget {
+  const CustomerSignUpScreen({super.key});
+  
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  State<CustomerSignUpScreen> createState() => _CustomerSignUpScreenState();
 }
-
-class _SignUpScreenState extends State<SignUpScreen> {
+  
+class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   String _selectedTitle = 'Mr.';
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
+  // Firebase Authentication helper instance
+  final FirebaseAuthHelper _authHelper = FirebaseAuthHelper();
+  // Firebase Firestore helper instance
+  final FirestoreHelper _firestoreHelper = FirestoreHelper();
+  bool _isProcessing = false;
 
   @override
   void dispose() {
