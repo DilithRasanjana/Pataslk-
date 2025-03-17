@@ -14,7 +14,7 @@ class PaymentMethodsScreen extends StatefulWidget {
 }
 
 class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
-    // Firebase Firestore instance for database operations
+  // Firebase Firestore instance for database operations
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   // Firebase Auth instance for user authentication
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -195,7 +195,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     }
   }
 
- IconData _getCardIcon(String cardType) {
+  IconData _getCardIcon(String cardType) {
     switch (cardType) {
       case 'Visa':
         return Icons.credit_card;
@@ -208,7 +208,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     }
   }
 
-void _showDeleteCardDialog(String cardId, String lastFourDigits) {
+  void _showDeleteCardDialog(String cardId, String lastFourDigits) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -233,7 +233,7 @@ void _showDeleteCardDialog(String cardId, String lastFourDigits) {
     );
   }
 
-   // Deletes a card document from Firestore
+  // Deletes a card document from Firestore
   Future<void> _deleteCard(String cardId) async {
     setState(() => _isLoading = true);
     
@@ -249,7 +249,7 @@ void _showDeleteCardDialog(String cardId, String lastFourDigits) {
           .collection('paymentMethods')
           .doc(cardId)
           .delete();
-
+      
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Card deleted successfully'),
