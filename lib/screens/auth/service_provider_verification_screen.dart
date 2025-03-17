@@ -1,6 +1,16 @@
+import 'dart:async';
+// Firebase Firestore package for database operations
+import 'package:cloud_firestore/cloud_firestore.dart';
+// Firebase Authentication package for user authentication
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'service_provider_login_screen.dart';
+// Helper utility for Firebase Authentication operations
+import '../../utils/firebase_auth_helper.dart';
+// Helper utility for Firestore database operations
+import '../../utils/firebase_firestore_helper.dart';
+import '../service_provider/home/service_provider_home_screen.dart';
+
 
 class ServiceProviderVerificationScreen extends StatefulWidget {
   const ServiceProviderVerificationScreen({Key? key}) : super(key: key);
@@ -15,7 +25,18 @@ class _ServiceProviderVerificationScreenState
   final List<TextEditingController> _controllers =
       List.generate(6, (index) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
+  // Firebase Authentication helper instance
+  final FirebaseAuthHelper _authHelper = FirebaseAuthHelper();
+  // Firebase Firestore helper instance
+  final FirestoreHelper _firestoreHelper = FirestoreHelper();
+  bool _isVerifying = false;
+  bool _isResending = false;
+  String _errorMessage = '';
 
+  Timer? _resendTimer;
+  int _resendSeconds = 60;
+  int? _localResendToken; // Local copy of resend token
+  
   @override
   void dispose() {
     for (var controller in _controllers) {
