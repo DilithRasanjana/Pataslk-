@@ -64,6 +64,32 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
         const SnackBar(content: Text('Processing Sign Up...')),
       );
 
+      // Firebase Firestore: Check if user with this email already exists in 'customers' collection
+      bool exists = await _firestoreHelper.doesUserExist(
+        collection: 'customers',
+        email: _emailController.text.trim(),
+      );
+      if (exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("User already exists. Please sign in.")),
+        );
+        return;
+      }
+      
+      setState(() {
+        _isProcessing = true;
+      });
+  
+      String fullPhone = formatPhoneNumber(_phoneController.text);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("You'll receive a verification SMS shortly. Please complete any security prompts if shown."),
+          duration: Duration(seconds: 5),
+        ),
+      );
+      
+
       // Navigate to verification screen
       Navigator.of(context).push(
         MaterialPageRoute(
