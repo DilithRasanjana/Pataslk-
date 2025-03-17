@@ -119,3 +119,179 @@ class _ServiceProviderNotificationScreenState extends State<ServiceProviderNotif
       ),
     );
   }
+
+  Widget _buildNotificationCard({
+    required Map<String, dynamic> notification, 
+    required String notificationId
+  }) {
+    final DateTime createdAt = (notification['createdAt'] as Timestamp).toDate();
+    final String formattedTime = DateFormat('dd MMM, hh:mm a').format(createdAt);
+    final String title = notification['title'] ?? 'Notification';
+    final String message = notification['message'] ?? '';
+    final String type = notification['type'] ?? 'general';
+    final String? bookingId = notification['bookingId'];
+    final double? amount = notification['amount'];
+    
+    // Choose icon based on notification type
+    IconData notificationIcon;
+    Color iconColor;
+    
+    switch (type) {
+      case 'payment':
+        notificationIcon = Icons.payments;
+        iconColor = Colors.green;
+        break;
+      case 'new_booking':
+        notificationIcon = Icons.assignment;
+        iconColor = Colors.blue;
+        break;
+      case 'status_change':
+        notificationIcon = Icons.update;
+        iconColor = Colors.orange;
+        break;
+      default:
+        notificationIcon = Icons.notifications;
+        iconColor = Colors.blue[700]!;
+    }
+    
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            onTap: () {
+              if (bookingId != null) {
+                _navigateToBookingDetails(bookingId);
+              }
+            },
+            contentPadding: const EdgeInsets.all(16),
+            leading: CircleAvatar(
+              backgroundColor: iconColor.withOpacity(0.1),
+              radius: 24,
+              child: Icon(notificationIcon, color: iconColor),
+            ),
+            title: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                Text(message),
+                const SizedBox(height: 8),
+                Text(
+                  formattedTime,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                ),
+              ],
+            ),
+            trailing: PopupMenuButton(
+              icon: const Icon(Icons.more_vert),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  child: const Text('Delete'),
+                  onTap: () {
+                    _deleteNotification(notificationId);
+                  },
+                ),
+              ],
+            ),
+          ),
+          
+          // If this is a payment notification, show the amount
+          if (type == 'payment' && amount != null)
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green[100]!),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.account_balance_wallet, color: Colors.green),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Rs ${amount.toStringAsFixed(2)} added to your account',
+                      style: const TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/Assets-main/Assets-main/No notofications.png',
+            width: 100,
+            height: 100,
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'No Notifications!',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'You don\'t have any notifications yet',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ServiceProviderHomeScreen(),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[900],
+              padding: const EdgeInsets.symmetric(
+                horizontal: 32,
+                vertical: 16,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text(
+              'Go to Home',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
