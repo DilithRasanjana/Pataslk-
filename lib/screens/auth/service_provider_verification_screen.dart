@@ -1,6 +1,16 @@
+import 'dart:async';
+// Firebase Firestore package for database operations
+import 'package:cloud_firestore/cloud_firestore.dart';
+// Firebase Authentication package for user authentication
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'service_provider_login_screen.dart';
+// Helper utility for Firebase Authentication operations
+import '../../utils/firebase_auth_helper.dart';
+// Helper utility for Firestore database operations
+import '../../utils/firebase_firestore_helper.dart';
+import '../service_provider/home/service_provider_home_screen.dart';
+
 
 class ServiceProviderVerificationScreen extends StatefulWidget {
   const ServiceProviderVerificationScreen({Key? key}) : super(key: key);
@@ -15,6 +25,17 @@ class _ServiceProviderVerificationScreenState
   final List<TextEditingController> _controllers =
       List.generate(6, (index) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
+  // Firebase Authentication helper instance
+  final FirebaseAuthHelper _authHelper = FirebaseAuthHelper();
+  // Firebase Firestore helper instance
+  final FirestoreHelper _firestoreHelper = FirestoreHelper();
+  bool _isVerifying = false;
+  bool _isResending = false;
+  String _errorMessage = '';
+
+  Timer? _resendTimer;
+  int _resendSeconds = 60;
+  int? _localResendToken; // Local copy of resend token
 
   @override
   void dispose() {
@@ -26,6 +47,147 @@ class _ServiceProviderVerificationScreenState
     }
     super.dispose();
   }
+
+  Future<void> _completeSignUp() async {
+    // Firebase Firestore: Save service provider data to 'serviceProviders' collection
+    if (widget.firstName != null &&
+        widget.lastName != null &&
+        widget.email != null &&
+        widget.phone != null &&
+        widget.jobRole != null) {
+      // Get current Firebase user after successful authentication
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Firebase Firestore: Save user profile data to database
+        await _firestoreHelper.saveUserData(
+          collection: 'serviceProviders',
+          uid: user.uid,
+          data: {
+            'firstName': widget.firstName,
+            'lastName': widget.lastName,
+            'email': widget.email,
+            'phone': widget.phone,
+            'jobRole': widget.jobRole,
+            'userType': 'serviceProvider',
+            'createdAt': FieldValue.serverTimestamp(), // Firestore server timestamp
+          },
+        );
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+              builder: (context) => const ServiceProviderHomeScreen()),
+        );
+      } else {
+        setState(() {
+          _errorMessage = "User not signed in or missing details";
+          _isVerifying = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("User not signed in")),
+        );
+      }
+    }
+  }
+  void _verifyCode() async {
+    String smsCode = _controllers.map((c) => c.text).join();
+    if (smsCode.length != 6) {
+      setState(() {
+        _errorMessage = "Please enter the complete 6-digit code";
+      });
+      return;
+    }
+
+    setState(() {
+      _isVerifying = true;
+      _errorMessage = '';
+    });
+
+    try {
+      // Firebase Authentication: Verify OTP code and sign in the user
+      var result = await _authHelper.signInWithOTP(
+        verificationId: widget.verificationId,
+        smsCode: smsCode,
+      );
+
+      if (result != null) {
+        bool isNewUser = result["isNewUser"] as bool;
+        if (widget.isSignUpFlow && isNewUser) {
+          // Firebase: Complete sign up flow for new users by saving data to Firestore
+          await _completeSignUp();
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+                builder: (context) => const ServiceProviderHomeScreen()),
+          );
+        }
+      } else {
+        setState(() {
+          _errorMessage = 'Verification failed. The code may be incorrect.';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Verification failed. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isVerifying = false;
+      });
+    }
+  }
+  
+    try {
+      // Firebase Authentication: Resend verification code to the user's phone
+      await _authHelper.verifyPhoneNumber(
+        phoneNumber: widget.phone!,
+        resendToken: _localResendToken,
+        onCodeSent: (String newVerificationId, int? forceResendingToken) {
+          // Firebase: Handle successful code resend
+          setState(() {
+            _isResending = false;
+            _localResendToken = forceResendingToken;
+          });
+          for (var controller in _controllers) controller.clear();
+          if (_focusNodes.isNotEmpty) _focusNodes[0].requestFocus();
+          _startResendTimer();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Verification code resent successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        },
+        onError: (String error) {
+          // Firebase: Handle verification error
+          setState(() {
+            _isResending = false;
+            _errorMessage = error;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error), backgroundColor: Colors.red),
+          );
+        },
+      );
+    } catch (e) {
+      setState(() {
+        _isResending = false;
+        _errorMessage = e.toString();
+      });
+    }
+  }
+        
+
 
   void _onCodeChanged(String value, int index) {
     if (value.length == 1 && index < 5) {

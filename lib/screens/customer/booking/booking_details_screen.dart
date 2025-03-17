@@ -152,11 +152,63 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
         selectedLocation = result['coordinates'] as LatLng;
         selectedAddress = result['address'] as String;
 
-        // Print for debugging
-        print(
-            'Selected Location: ${selectedLocation?.latitude}, ${selectedLocation?.longitude}');
-        print('Selected Address: $selectedAddress');
+        
       });
+    }
+  }
+   // Add payment method and navigation with mounted check
+  Future<void> _addPaymentMethod() async {
+    if (selectedDate == null || selectedTime == null || selectedAddress == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all required fields'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+     setState(() {
+      _isLoading = true;
+    });
+    
+    // Firebase: Create booking record in Firestore
+    String? bookingId = await _createBooking();
+    
+    // Check if widget is still mounted before using context
+    if (!_isMounted) return;
+    
+    setState(() {
+      _isLoading = false;
+    }); 
+
+    if (bookingId != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PaymentScreen(
+            amount: widget.amount,
+            bookingId: bookingId,  // Pass Firebase document ID
+            onPaymentSuccess: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OrderStatusScreen(
+                    bookingId: bookingId,
+                    address: selectedAddress!,
+                    serviceType: widget.serviceType,
+                    jobRole: widget.serviceName,
+                    selectedDate: selectedDate!,
+                    selectedTime: selectedTime!,
+                    description: widget.description,
+                    uploadedImageUrl: widget.uploadedImageUrl, // Pass the image URL properly
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
     }
   }
 
