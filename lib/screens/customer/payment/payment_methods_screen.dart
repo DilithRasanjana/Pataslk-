@@ -331,65 +331,6 @@ void _showDeleteCardDialog(String cardId, String lastFourDigits) {
       ),
     );
   }
-  Widget _buildCreditCardOption() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey[200]!,
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AddCardScreen()),
-            ).then((_) {
-              // Refresh the screen when returning from AddCardScreen
-              setState(() {});
-            });
-            
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.credit_card,
-                    color: Colors.blue[700],
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                const Text(
-                  'Add credit or debit card',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -411,74 +352,119 @@ void _showDeleteCardDialog(String cardId, String lastFourDigits) {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildCreditCardOption(),
-              const Row(
-                children: [
-                  Expanded(child: Divider()),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'or',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 16,
+      body: Stack(
+        children: [
+          // Firebase Firestore real-time stream of payment methods collection for current user
+          StreamBuilder<QuerySnapshot>(
+            stream: _auth.currentUser != null
+                ? _firestore
+                    .collection('customers')
+                    .doc(_auth.currentUser!.uid)
+                    .collection('paymentMethods')
+                    .orderBy('isDefault', descending: true)
+                    .snapshots()
+                : null,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              
+              return SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildAddCardButton(),
+                      
+                      // Show saved cards if any
+                      if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) ...[
+                        const Text(
+                          'Your Cards',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ...snapshot.data!.docs.map((doc) => _buildSavedCard(doc)),
+                        const SizedBox(height: 24),
+                      ],
+                      
+                      const Row(
+                        children: [
+                          Expanded(child: Divider()),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'or pay with',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          Expanded(child: Divider()),
+                        ],
                       ),
-                    ),
+                      const SizedBox(height: 24),
+                      _buildPaymentOption(
+                        title: 'PayPal',
+                        imagePath: 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/paypal.png',
+                        value: 'paypal',
+                      ),
+                      _buildPaymentOption(
+                        title: 'Google Pay',
+                        imagePath: 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/googleplay.png',
+                        value: 'google_pay',
+                      ),
+                      _buildPaymentOption(
+                        title: 'Apple Pay',
+                        imagePath: 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/applepay.png',
+                        value: 'apple_pay',
+                      ),
+                      const SizedBox(height: 32),
+                      ElevatedButton(
+                        onPressed: _selectedMethod != null
+                            ? () {
+                                // TODO: Handle payment method selection
+                                Navigator.pop(context);
+                              }
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0D47A1),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          disabledBackgroundColor: Colors.grey[300],
+                        ),
+                        child: const Text(
+                          'Add',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  Expanded(child: Divider()),
-                ],
-              ),
-              const SizedBox(height: 24),
-              _buildPaymentOption(
-                title: 'PayPal',
-                imagePath: 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/paypal.png',
-                value: 'paypal',
-              ),
-              _buildPaymentOption(
-                title: 'Google Pay',
-                imagePath: 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/googleplay.png',
-                value: 'google_pay',
-              ),
-              _buildPaymentOption(
-                title: 'Apple Pay',
-                imagePath: 'https://raw.githubusercontent.com/SDGP-CS80-ServiceProviderPlatform/Assets/refs/heads/main/applepay.png',
-                value: 'apple_pay',
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _selectedMethod != null
-                    ? () {
-                        // TODO: Handle payment method selection
-                        Navigator.pop(context);
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0D47A1),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  disabledBackgroundColor: Colors.grey[300],
                 ),
-                child: const Text(
-                  'Add',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
+              );
+            },
           ),
-        ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
       ),
     );
   }
 }
+
