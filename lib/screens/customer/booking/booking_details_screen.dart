@@ -422,7 +422,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                   ),
                   if (showDetails) ...[
                     const SizedBox(height: 16),
-                    // Add your detailed breakdown here
+                    const SizedBox(height: 16),
                     const Text('Service charge: Rs 800.00'),
                     const Text('Tax: Rs 200.00'),
                   ],
