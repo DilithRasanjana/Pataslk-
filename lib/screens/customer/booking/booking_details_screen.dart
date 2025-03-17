@@ -212,6 +212,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
     }
   }
 
+  bool _isLoading = false; 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -228,11 +230,41 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : SingleChildScrollView( // Wrap in SingleChildScrollView to prevent overflow
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Display uploaded image if available
+                  if (widget.uploadedImageUrl != null) ...[
+                    Container(
+                      height: 150,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: CachedNetworkImage(
+                          imageUrl: widget.uploadedImageUrl!,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                          errorWidget: (context, url, error) => const Center(
+                            child: Icon(Icons.error, color: Colors.red),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ]
+          
+      
             const Text(
               'Select your Date & Time?',
               style: TextStyle(
