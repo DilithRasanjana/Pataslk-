@@ -44,6 +44,19 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
     return RegExp(r'^\d{9,10}$').hasMatch(phone);
   }
 
+  /// Helper to format phone number in E.164 format.
+  String formatPhoneNumber(String raw) {
+    String trimmed = raw.trim().replaceAll(RegExp(r'\s+|-|\(|\)'), '');
+    // Handle case where user added country code
+    if (trimmed.startsWith('94')) {
+      trimmed = trimmed.substring(2);
+    } else if (trimmed.startsWith('+94')) {
+      trimmed = trimmed.substring(3);
+    }
+    // Add country code
+    return '+94$trimmed';
+  }
+
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       // Show loading indicator
