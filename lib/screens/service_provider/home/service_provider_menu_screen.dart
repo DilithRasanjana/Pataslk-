@@ -103,159 +103,148 @@ class ServiceProviderMenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get Firebase Auth current user
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    final FirestoreHelper firestoreHelper = FirestoreHelper();
+
     return Scaffold(
-      backgroundColor: Colors.blue[900],
+      backgroundColor: const Color(0xFF0D47A1),
       body: SafeArea(
         child: Column(
           children: [
+            // Firebase Firestore stream to get real-time service provider data
+            StreamBuilder<DocumentSnapshot>(
+              stream: firestoreHelper.getUserStream(
+                collection: _providersCollection,
+                uid: currentUser?.uid ?? '',
+              ),
+              builder: (context, snapshot) {
+                String name = 'Provider';
+                String? profileImageUrl;
+                
+                // Parse Firestore document data
+                if (snapshot.hasData && snapshot.data!.exists) {
+                  final data = snapshot.data!.data() as Map<String, dynamic>;
+                  name = data['firstName'] ?? name;
+                  profileImageUrl = data['profileImageUrl'];
+                }
+                
+                return Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const ServiceProviderProfileScreen()),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 30,
+                            backgroundColor: Colors.white54,
+                            child: profileImageUrl != null
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(30),
+                                    child: CachedNetworkImage(
+                                      imageUrl: profileImageUrl,
+                                      fit: BoxFit.cover,
+                                      width: 60,
+                                      height: 60,
+                                      placeholder: (context, url) => const CircularProgressIndicator(
+                                        strokeWidth: 2.0,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                      errorWidget: (context, url, error) => 
+                                          const Icon(Icons.person, size: 40, color: Colors.white),
+                                    ),
+                                  )
+                                : const Icon(Icons.person, size: 40, color: Colors.white),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              name,
+                              style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }
+            ),
+            const SizedBox(height: 20),
+            _buildMenuItem(
+              Icons.home_outlined,
+              'Home',
+              () {
+                Navigator.pushReplacement(
+                  context, 
+                  MaterialPageRoute(builder: (context) => const ServiceProviderHomeScreen()),
+                );
+              },
+            ),
+            _buildMenuItem(
+              Icons.campaign,
+              'Advertisement',
+              () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Advertisement feature will be available in future updates!'),
+                    duration: Duration(seconds: 2),
+                    backgroundColor: Color(0xFF0D47A1),
+                  ),
+                );
+              },
+            ),
+            _buildMenuItem(
+              Icons.notifications,
+              'Notification',
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ServiceProviderNotificationScreen()),
+                );
+              },
+            ),
+            _buildMenuItem(
+              Icons.star,
+              'Rate',
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ServiceProviderRatingScreen()),
+                );
+              },
+            ),
+            _buildMenuItem(
+              Icons.support_agent,
+              'Support',
+              () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ServiceProviderSupportScreen()),
+                );
+              },
+            ),
+            const Spacer(),
             Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const ServiceProviderProfileScreen(),
-                    ),
-                  );
-                },
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.person,
-                        size: 40,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Text(
-                      'Workers Name',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+              padding: const EdgeInsets.all(24.0),
+              child: ListTile(
+                leading: const Icon(Icons.logout, color: Colors.white, size: 24),
+                title: const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
                 ),
-              ),
-            ),
-            const SizedBox(height: 40),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    _buildMenuItem(
-                      icon: Icons.home,
-                      title: 'Home',
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const ServiceProviderHomeScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildMenuItem(
-                      icon: Icons.campaign,
-                      title: 'Advertisement',
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                                'Advertisement feature will be available in future updates!'),
-                            duration: Duration(seconds: 2),
-                            backgroundColor: Color(0xFF0D47A1),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildMenuItem(
-                      icon: Icons.notifications,
-                      title: 'Notification',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const ServiceProviderNotificationScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildMenuItem(
-                      icon: Icons.star,
-                      title: 'Rate',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const ServiceProviderRatingScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildMenuItem(
-                      icon: Icons.support_agent,
-                      title: 'Support',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const ServiceProviderSupportScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    const Spacer(),
-                    _buildMenuItem(
-                      icon: Icons.logout,
-                      title: 'Logout',
-                      onTap: () => _showLogoutDialog(context),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: InkWell(
-        onTap: onTap,
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: Colors.white,
-              size: 24,
-            ),
-            const SizedBox(width: 16),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+                onTap: () => _showLogoutDialog(context),
+                contentPadding: EdgeInsets.zero,
               ),
             ),
           ],
