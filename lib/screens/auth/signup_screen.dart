@@ -88,6 +88,15 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
           duration: Duration(seconds: 5),
         ),
       );
+
+      // Firebase Authentication: Start phone number verification process
+      await _authHelper.verifyPhoneNumber(
+        phoneNumber: fullPhone,
+        // Firebase Authentication: Handle successful SMS code sending
+        onCodeSent: (String verificationId, int? forceResendingToken) {
+          setState(() {
+            _isProcessing = false;
+          });
       
 
       // Navigate to verification screen
