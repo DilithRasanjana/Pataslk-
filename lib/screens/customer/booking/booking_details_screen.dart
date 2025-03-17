@@ -267,9 +267,9 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
       
             const Text(
               'Select your Date & Time?',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+              
               ),
             ),
             const SizedBox(height: 20),
@@ -364,8 +364,9 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                 ),
               ),
             ),
-            const Spacer(),
-            // Total Amount Section
+            const SizedBox(height: 40), // Add space instead of spacer in SingleChildScrollView
+                  
+            
             Container(
               padding: const EdgeInsets.all(16),
               child: Column(
