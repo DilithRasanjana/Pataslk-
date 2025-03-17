@@ -11,20 +11,38 @@ import '../../utils/firebase_auth_helper.dart';
 import '../../utils/firebase_firestore_helper.dart';
 import '../service_provider/home/service_provider_home_screen.dart';
 
-
 class ServiceProviderVerificationScreen extends StatefulWidget {
-  const ServiceProviderVerificationScreen({Key? key}) : super(key: key);
+  final String verificationId;
+  final bool isSignUpFlow;
+  final String? firstName;
+  final String? lastName;
+  final String? email;
+  final String? phone;
+  final String? jobRole;
+  final int? resendToken; // Optional resend token
+
+  const ServiceProviderVerificationScreen({
+    super.key,
+    required this.verificationId,
+    required this.isSignUpFlow,
+    this.firstName,
+    this.lastName,
+    this.email,
+    this.phone,
+    this.jobRole,
+    this.resendToken,
+  });
 
   @override
   State<ServiceProviderVerificationScreen> createState() =>
       _ServiceProviderVerificationScreenState();
 }
 
-class _ServiceProviderVerificationScreenState
-    extends State<ServiceProviderVerificationScreen> {
+class _ServiceProviderVerificationScreenState extends State<ServiceProviderVerificationScreen> {
   final List<TextEditingController> _controllers =
       List.generate(6, (index) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
+  final List<FocusNode> _focusNodes =
+      List.generate(6, (index) => FocusNode());
   // Firebase Authentication helper instance
   final FirebaseAuthHelper _authHelper = FirebaseAuthHelper();
   // Firebase Firestore helper instance
@@ -38,14 +56,35 @@ class _ServiceProviderVerificationScreenState
   int? _localResendToken; // Local copy of resend token
 
   @override
+  void initState() {
+    super.initState();
+    _localResendToken = widget.resendToken;
+    _startResendTimer();
+    debugPrint("Verification screen opened for phone: ${widget.phone}");
+  }
+
+  @override
   void dispose() {
-    for (var controller in _controllers) {
-      controller.dispose();
-    }
-    for (var node in _focusNodes) {
-      node.dispose();
-    }
+    _resendTimer?.cancel();
+    for (var controller in _controllers) controller.dispose();
+    for (var node in _focusNodes) node.dispose();
     super.dispose();
+  }
+
+  void _startResendTimer() {
+    setState(() {
+      _resendSeconds = 60;
+    });
+    _resendTimer?.cancel();
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_resendSeconds > 0) {
+        setState(() {
+          _resendSeconds--;
+        });
+      } else {
+        timer.cancel();
+      }
+    });
   }
 
   Future<void> _completeSignUp() async {
@@ -87,6 +126,7 @@ class _ServiceProviderVerificationScreenState
       }
     }
   }
+
   void _verifyCode() async {
     String smsCode = _controllers.map((c) => c.text).join();
     if (smsCode.length != 6) {
@@ -146,7 +186,20 @@ class _ServiceProviderVerificationScreenState
       });
     }
   }
-  
+
+  void _resendCode() async {
+    if (widget.phone == null) {
+      setState(() {
+        _errorMessage = 'Phone number is missing';
+      });
+      return;
+    }
+    
+    setState(() {
+      _isResending = true;
+      _errorMessage = '';
+    });
+
     try {
       // Firebase Authentication: Resend verification code to the user's phone
       await _authHelper.verifyPhoneNumber(
@@ -186,140 +239,47 @@ class _ServiceProviderVerificationScreenState
       });
     }
   }
-        
 
-
-  void _onCodeChanged(String value, int index) {
+  void _onTextChanged(String value, int index) {
     if (value.length == 1 && index < 5) {
       _focusNodes[index + 1].requestFocus();
     }
-    if (value.isEmpty && index > 0) {
-      _focusNodes[index - 1].requestFocus();
-    }
-    if (index == 5 && value.length == 1) {
+    if (value.length == 1 && index == 5) {
       _verifyCode();
-    }
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.green,
-                  ),
-                  child: const Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 36,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Verification Successful!',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Your account has been verified successfully.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close dialog
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const ServiceProviderLoginScreen(),
-                      ),
-                      (route) => false,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[900],
-                    minimumSize: const Size(double.infinity, 45),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Continue to Sign In',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _verifyCode() {
-    String code = _controllers.map((controller) => controller.text).join();
-    if (code.length == 6) {
-      _showSuccessDialog();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        title: const Text("Verify Phone"),
+        backgroundColor: Colors.blue,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Verification',
+              'Verification Code',
               style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+                  fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             Text(
-              'Enter the 4-digit code sent to your mobile number',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+              'Enter the 6-digit code sent to ${widget.phone ?? "your mobile"}',
+              style:
+                  const TextStyle(fontSize: 16, color: Colors.black54),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 40),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: List.generate(
                 6,
                 (index) => SizedBox(
                   width: 45,
+                  height: 55,
                   child: TextField(
                     controller: _controllers[index],
                     focusNode: _focusNodes[index],
@@ -328,58 +288,76 @@ class _ServiceProviderVerificationScreenState
                     maxLength: 1,
                     style: const TextStyle(fontSize: 24),
                     decoration: InputDecoration(
-                      counterText: '',
+                      counterText: "",
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide:
+                            BorderSide(color: Colors.grey.shade300),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.blue[900]!),
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).primaryColor),
                       ),
+                      filled: true,
+                      fillColor: Colors.grey.shade100,
                     ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
-                    onChanged: (value) => _onCodeChanged(value, index),
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    onChanged: (value) => _onTextChanged(value, index),
                   ),
                 ),
               ),
             ),
+            if (_errorMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Text(
+                  _errorMessage,
+                  style:
+                      const TextStyle(color: Colors.red, fontSize: 14),
+                ),
+              ),
             const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _verifyCode,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[900],
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'Verify',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Didn\'t receive code? ',
-                  style: TextStyle(color: Colors.grey[600]),
-                ),
-                TextButton(
-                  onPressed: () {
-                    // Resend code logic
-                  },
-                  child: const Text('Resend'),
-                ),
+                Text(_resendSeconds > 0
+                    ? "Resend code in $_resendSeconds s"
+                    : "Didn't receive a code?"),
+                if (_resendSeconds == 0)
+                  TextButton(
+                    onPressed: !_isResending ? _resendCode : null,
+                    child: _isResending
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Resend'),
+                  ),
               ],
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isVerifying ? null : _verifyCode,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF3F4F6),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
+                child: _isVerifying
+                    ? const CircularProgressIndicator()
+                    : const Text(
+                        'Verify',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87),
+                      ),
+              ),
             ),
           ],
         ),
