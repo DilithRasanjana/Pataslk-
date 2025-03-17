@@ -22,7 +22,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
   bool _saveForNextTime = false;
   bool _isLoading = false;
 
-    // Firebase instances for database and authentication operations
+  // Firebase instances for database and authentication operations
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -111,19 +111,19 @@ class _AddCardScreenState extends State<AddCardScreen> {
     if (cardNumber.length < 16) return cardNumber;
     return 'XXXXXXXXXXXX${cardNumber.substring(12, 16)}';
   }
-     
+
   void _showSuccessMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green[100]),
-            const SizedBox(width: 8),
-            const Text('Card added successfully'),
+            Icon(Icons.check_circle, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Card added successfully'),
           ],
         ),
         backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
+        duration: Duration(seconds: 2),
       ),
     );
     Future.delayed(const Duration(seconds: 2), () {
@@ -222,36 +222,36 @@ class _AddCardScreenState extends State<AddCardScreen> {
                         height: 1.5,
                       ),
                     ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    // TODO: Implement card scanning
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0D47A1),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () {
+                        // TODO: Implement card scanning
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D47A1),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Select my card',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    'Select my card',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                    const SizedBox(height: 32),
+                    const Text(
+                      'Name on card',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                const Text(
-                  'Name on card',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     TextFormField(
                       controller: _nameController,
                       decoration: InputDecoration(
@@ -311,103 +311,103 @@ class _AddCardScreenState extends State<AddCardScreen> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            controller: _expiryController,
-                            decoration: InputDecoration(
-                              hintText: 'MM/YYYY',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
-                              ),
-                            ),
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(6),
-                              _ExpiryDateFormatter(),
-                            ],
-                            validator: _validateExpiry,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Text(
-                                'CVV',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: _expiryController,
+                                decoration: InputDecoration(
+                                  hintText: 'MM/YYYY',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: Colors.grey[300]!),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: Colors.grey[300]!),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.info_outline,
-                                size: 16,
-                                color: Colors.grey[600],
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(6),
+                                  _ExpiryDateFormatter(),
+                                ],
+                                validator: _validateExpiry,
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            controller: _cvvController,
-                            decoration: InputDecoration(
-                              hintText: '123',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Text(
+                                    'CVV',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.info_outline,
+                                    size: 16,
+                                    color: Colors.grey[600],
+                                  ),
+                                ],
                               ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(color: Colors.grey[300]!),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: _cvvController,
+                                decoration: InputDecoration(
+                                  hintText: '123',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: Colors.grey[300]!),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: Colors.grey[300]!),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(3),
+                                ],
+                                validator: _validateCVV,
+                                obscureText: true, // Add security for CVV
                               ),
-                            ),
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(3),
                             ],
-                            validator: _validateCVV,
-                            obscureText: true, // Add security for CVV
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Make this my default card',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    const SizedBox(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Make this my default card',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Switch(
+                          value: _isDefaultCard,
+                          onChanged: (value) {
+                            setState(() {
+                              _isDefaultCard = value;
+                            });
+                          },
+                          activeColor: Colors.green,
+                        ),
+                      ],
                     ),
-                    Switch(
-                      value: _isDefaultCard,
-                      onChanged: (value) {
-                        setState(() {
-                          _isDefaultCard = value;
-                        });
-                      },
-                      activeColor: Colors.green,
-                    ),
-                  ],
-                ),
-                Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(
@@ -429,18 +429,18 @@ class _AddCardScreenState extends State<AddCardScreen> {
                             ),
                           ],
                         ),
-                    Switch(
-                      value: _saveForNextTime,
-                      onChanged: (value) {
-                        setState(() {
-                          _saveForNextTime = value;
-                        });
-                      },
-                      activeColor: Colors.green,
+                        Switch(
+                          value: _saveForNextTime,
+                          onChanged: (value) {
+                            setState(() {
+                              _saveForNextTime = value;
+                            });
+                          },
+                          activeColor: Colors.green,
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 32),
+                    const SizedBox(height: 32),
                     ElevatedButton(
                       onPressed: _isLoading 
                           ? null 
@@ -449,40 +449,40 @@ class _AddCardScreenState extends State<AddCardScreen> {
                                 _saveCardToFirestore();
                               }
                             },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0D47A1),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D47A1),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Add',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    'Add',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
-                    ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
-      if (_isLoading)
+          if (_isLoading)
             Container(
               color: Colors.black.withOpacity(0.5),
               child: const Center(
                 child: CircularProgressIndicator(color: Colors.white),
               ),
             ),
-          ],
-        ),
-      );
-    }
+        ],
+      ),
+    );
   }
-  
+}
+
 class _CardNumberFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
@@ -536,3 +536,4 @@ class _ExpiryDateFormatter extends TextInputFormatter {
     );
   }
 }
+
