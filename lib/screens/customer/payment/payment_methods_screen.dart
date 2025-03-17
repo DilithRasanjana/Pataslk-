@@ -180,6 +180,22 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     );
   }
 
+  String _getCardType(String cardNumber) {
+    // Very basic detection - could be expanded with more sophisticated logic
+    if (cardNumber.startsWith('XXXX')) {
+      return 'Unknown';
+    } else if (cardNumber.startsWith('4')) {
+      return 'Visa';
+    } else if (cardNumber.startsWith('5')) {
+      return 'MasterCard';
+    } else if (cardNumber.startsWith('3')) {
+      return 'Amex';
+    } else {
+      return 'Unknown';
+    }
+  }
+
+
   Widget _buildCreditCardOption() {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
