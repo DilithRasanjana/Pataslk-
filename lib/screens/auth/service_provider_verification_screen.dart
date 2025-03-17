@@ -36,7 +36,7 @@ class _ServiceProviderVerificationScreenState
   Timer? _resendTimer;
   int _resendSeconds = 60;
   int? _localResendToken; // Local copy of resend token
-  
+
   @override
   void dispose() {
     for (var controller in _controllers) {
@@ -46,6 +46,46 @@ class _ServiceProviderVerificationScreenState
       node.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _completeSignUp() async {
+    // Firebase Firestore: Save service provider data to 'serviceProviders' collection
+    if (widget.firstName != null &&
+        widget.lastName != null &&
+        widget.email != null &&
+        widget.phone != null &&
+        widget.jobRole != null) {
+      // Get current Firebase user after successful authentication
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Firebase Firestore: Save user profile data to database
+        await _firestoreHelper.saveUserData(
+          collection: 'serviceProviders',
+          uid: user.uid,
+          data: {
+            'firstName': widget.firstName,
+            'lastName': widget.lastName,
+            'email': widget.email,
+            'phone': widget.phone,
+            'jobRole': widget.jobRole,
+            'userType': 'serviceProvider',
+            'createdAt': FieldValue.serverTimestamp(), // Firestore server timestamp
+          },
+        );
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+              builder: (context) => const ServiceProviderHomeScreen()),
+        );
+      } else {
+        setState(() {
+          _errorMessage = "User not signed in or missing details";
+          _isVerifying = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("User not signed in")),
+        );
+      }
+    }
   }
 
   void _onCodeChanged(String value, int index) {
