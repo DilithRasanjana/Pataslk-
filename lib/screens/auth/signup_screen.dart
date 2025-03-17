@@ -26,7 +26,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
   // Firebase Firestore helper instance
   final FirestoreHelper _firestoreHelper = FirestoreHelper();
   bool _isProcessing = false;
-
+  
   @override
   void dispose() {
     _firstNameController.dispose();
@@ -35,15 +35,16 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
     _emailController.dispose();
     super.dispose();
   }
-
+  
   bool isValidEmail(String email) {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
-
+  
   bool isValidPhone(String phone) {
-    return RegExp(r'^\d{9,10}$').hasMatch(phone);
+    // Expecting exactly 9 digits (without the leading 0)
+    return RegExp(r'^\d{9}$').hasMatch(phone);
   }
-
+  
   /// Helper to format phone number in E.164 format.
   String formatPhoneNumber(String raw) {
     String trimmed = raw.trim().replaceAll(RegExp(r'\s+|-|\(|\)'), '');
@@ -56,14 +57,16 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
     // Add country code
     return '+94$trimmed';
   }
-
-  void _submitForm() {
+  
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      // Show loading indicator
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Processing Sign Up...')),
-      );
-
+      if (!isValidPhone(_phoneController.text)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please enter a valid 9-digit mobile number")),
+        );
+        return;
+      }
+      
       // Firebase Firestore: Check if user with this email already exists in 'customers' collection
       bool exists = await _firestoreHelper.doesUserExist(
         collection: 'customers',
@@ -88,7 +91,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
           duration: Duration(seconds: 5),
         ),
       );
-
+      
       // Firebase Authentication: Start phone number verification process
       await _authHelper.verifyPhoneNumber(
         phoneNumber: fullPhone,
@@ -97,15 +100,21 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
           setState(() {
             _isProcessing = false;
           });
-
-          // Navigate to verification screen
+          // Navigate to Verification screen and pass details along with the resend token.
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => const VerificationScreen(),
-        ),
-      );
-    }
-  }
+              builder: (context) => CustomerVerificationScreen(
+                verificationId: verificationId,  // Firebase verification ID for SMS authentication
+                resendToken: forceResendingToken,  // Firebase token for resending verification code
+                isSignUpFlow: true,
+                firstName: _firstNameController.text.trim(),
+                lastName: _lastNameController.text.trim(),
+                email: _emailController.text.trim(),
+                phone: fullPhone,
+              ),
+            ),
+          );
+        },
         // Firebase Authentication: Handle verification errors
         onError: (String error) {
           setState(() {
@@ -117,10 +126,8 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
         },
       );
     }
-  } 
-
-      
-
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -132,301 +139,293 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => const LoginScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const CustomerLoginScreen()),
             );
           },
         ),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Updated Logo
-                Center(
-                  child: Image.asset(
-                    'assets/Assets-main/Assets-main/logo 2.png',
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.contain,
-                  ),
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Image.asset(
+                  'assets/Assets-main/Assets-main/logo 2.png',
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.contain,
                 ),
-                const SizedBox(height: 30),
-                // Sign Up text
-                const Text(
-                  'Sign Up',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+              ),
+              const SizedBox(height: 30),
+              const Text(
+                'Sign Up',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
-                const SizedBox(height: 30),
-                // First Name with Title
-                const Text(
-                  'First Name',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
+              ),
+              const SizedBox(height: 30),
+              // First Name Field with title dropdown.
+              const Text(
+                'First Name',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
                 ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3F4F6),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: DropdownButton<String>(
-                          value: _selectedTitle,
-                          underline: const SizedBox(),
-                          items: ['Mr.', 'Mrs.', 'Ms.', 'Dr.']
-                              .map((title) => DropdownMenuItem(
-                                    value: title,
-                                    child: Text(title),
-                                  ))
-                              .toList(),
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() {
-                                _selectedTitle = value;
-                              });
-                            }
-                          },
-                        ),
-                      ),
-                      Container(
-                        width: 1,
-                        height: 24,
-                        color: Colors.grey.shade400,
-                      ),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _firstNameController,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your first name';
-                            }
-                            if (value.length < 2) {
-                              return 'First name must be at least 2 characters';
-                            }
-                            return null;
-                          },
-                          decoration: const InputDecoration(
-                            hintText: 'First Name',
-                            border: InputBorder.none,
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 16),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(height: 20),
-                // Last Name
-                const Text(
-                  'Last Name',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3F4F6),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: TextFormField(
-                    controller: _lastNameController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your last name';
-                      }
-                      if (value.length < 2) {
-                        return 'Last name must be at least 2 characters';
-                      }
-                      return null;
-                    },
-                    decoration: const InputDecoration(
-                      hintText: 'Last Name',
-                      border: InputBorder.none,
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                // Phone Number
-                const Text(
-                  'Phone Number',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3F4F6),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              'assets/Assets-main/Assets-main/circle 1.png',
-                              width: 24,
-                              height: 24,
-                            ),
-                            const SizedBox(width: 8),
-                            const Text(
-                              '+94',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const Icon(Icons.arrow_drop_down),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        width: 1,
-                        height: 24,
-                        color: Colors.grey.shade400,
-                      ),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _phoneController,
-                          keyboardType: TextInputType.phone,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your phone number';
-                            }
-                            if (!isValidPhone(value)) {
-                              return 'Please enter a valid phone number';
-                            }
-                            return null;
-                          },
-                          decoration: const InputDecoration(
-                            hintText: 'Phone Number',
-                            border: InputBorder.none,
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: 16),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                // Email
-                const Text(
-                  'Email',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3F4F6),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!isValidEmail(value)) {
-                        return 'Please enter a valid email address';
-                      }
-                      return null;
-                    },
-                    decoration: const InputDecoration(
-                      hintText: 'Email',
-                      border: InputBorder.none,
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                // Sign Up button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _submitForm,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF3F4F6),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: DropdownButton<String>(
+                        value: _selectedTitle,
+                        underline: const SizedBox(),
+                        items: ['Mr.', 'Mrs.', 'Ms.', 'Dr.']
+                            .map((title) => DropdownMenuItem(
+                                  value: title,
+                                  child: Text(title),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() {
+                              _selectedTitle = value;
+                            });
+                          }
+                        },
                       ),
                     ),
-                    child: const Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                    Container(
+                      width: 1,
+                      height: 24,
+                      color: Colors.grey.shade400,
+                    ),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _firstNameController,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your first name';
+                          }
+                          if (value.length < 2) {
+                            return 'First name must be at least 2 characters';
+                          }
+                          return null;
+                        },
+                        decoration: const InputDecoration(
+                          hintText: 'First Name',
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                        ),
                       ),
                     ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Last Name Field.
+              const Text(
+                'Last Name',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: TextFormField(
+                  controller: _lastNameController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your last name';
+                    }
+                    if (value.length < 2) {
+                      return 'Last name must be at least 2 characters';
+                    }
+                    return null;
+                  },
+                  decoration: const InputDecoration(
+                    hintText: 'Last Name',
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                 ),
-                const SizedBox(height: 20),
-                // Already have an account
-                Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
-                    },
-                    child: RichText(
-                      text: TextSpan(
-                        text: 'Already have an Account? ',
-                        style: const TextStyle(
-                          color: Colors.black54,
-                          fontSize: 14,
-                        ),
+              ),
+              const SizedBox(height: 20),
+              // Phone Number Field.
+              const Text(
+                'Phone Number',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
                         children: [
-                          TextSpan(
-                            text: 'Sign in',
+                          Image.asset(
+                            'assets/Assets-main/Assets-main/circle 1.png',
+                            width: 24,
+                            height: 24,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            '+94',
                             style: TextStyle(
-                              color: Theme.of(context).primaryColor,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
+                          const Icon(Icons.arrow_drop_down),
                         ],
                       ),
                     ),
+                    Container(
+                      width: 1,
+                      height: 24,
+                      color: Colors.grey.shade400,
+                    ),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(9),
+                        ],
+                        decoration: const InputDecoration(
+                          hintText: '7XXXXXXXX',
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your phone number';
+                          }
+                          if (value.length != 9) {
+                            return 'Mobile number must be 9 digits';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Email Field.
+              const Text(
+                'Email',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email';
+                    }
+                    if (!isValidEmail(value)) {
+                      return 'Please enter a valid email address';
+                    }
+                    return null;
+                  },
+                  decoration: const InputDecoration(
+                    hintText: 'Email',
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 30),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isProcessing ? null : _submitForm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFF3F4F6),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: _isProcessing
+                      ? const CircularProgressIndicator()
+                      : const Text(
+                          'Sign Up',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => const CustomerLoginScreen()),
+                    );
+                  },
+                  child: RichText(
+                    text: TextSpan(
+                      text: 'Already have an Account? ',
+                      style: const TextStyle(
+                        color: Colors.black54,
+                        fontSize: 14,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: 'Sign in',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
