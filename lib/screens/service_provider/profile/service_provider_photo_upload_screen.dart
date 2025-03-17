@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
+// Note: This file doesn't directly use Firebase services.
+// It handles image picking functionality that will later be uploaded to Firebase Storage
+
 class ServiceProviderPhotoUploadScreen extends StatefulWidget {
   const ServiceProviderPhotoUploadScreen({Key? key}) : super(key: key);
 
