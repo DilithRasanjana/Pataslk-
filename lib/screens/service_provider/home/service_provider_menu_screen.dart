@@ -1,13 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'service_provider_home_screen.dart';
-import 'service_provider_notification_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../auth/user_type_screen.dart';
 import '../profile/service_provider_profile_screen.dart';
+import 'service_provider_notification_screen.dart';
 import '../ratings/service_provider_rating_screen.dart';
 import 'service_provider_support_screen.dart';
-import '../../auth/user_type_screen.dart';
+import '../../../utils/firebase_firestore_helper.dart';
+import 'service_provider_home_screen.dart';
 
 class ServiceProviderMenuScreen extends StatelessWidget {
-  const ServiceProviderMenuScreen({Key? key}) : super(key: key);
+  const ServiceProviderMenuScreen({super.key});
+
+  // Firestore collection name for service providers
+  final String _providersCollection = 'serviceProviders';
 
   Future<void> _showLogoutDialog(BuildContext context) {
     return showDialog(
@@ -15,9 +22,7 @@ class ServiceProviderMenuScreen extends StatelessWidget {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -30,28 +35,18 @@ class ServiceProviderMenuScreen extends StatelessWidget {
                     color: Colors.orange,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.logout,
-                    color: Colors.white,
-                    size: 40,
-                  ),
+                  child: const Icon(Icons.logout, color: Colors.white, size: 40),
                 ),
                 const SizedBox(height: 24),
                 const Text(
                   'Come back soon!',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Are you sure you want\nto logout?',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -60,26 +55,18 @@ class ServiceProviderMenuScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => const UserTypeScreen(),
-                        ),
+                        MaterialPageRoute(builder: (context) => const UserTypeScreen()),
                         (route) => false,
                       );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0D47A1),
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                     child: const Text(
                       'Yes, Logout',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),
                 ),
@@ -90,10 +77,7 @@ class ServiceProviderMenuScreen extends StatelessWidget {
                     onPressed: () => Navigator.of(context).pop(),
                     child: const Text(
                       'Cancel',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.red,
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.red, fontWeight: FontWeight.w500),
                     ),
                   ),
                 ),
@@ -102,6 +86,18 @@ class ServiceProviderMenuScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildMenuItem(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.white, size: 24),
+      title: Text(
+        title,
+        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+      ),
+      onTap: onTap,
+      contentPadding: EdgeInsets.zero,
     );
   }
 
