@@ -87,7 +87,250 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
     final isDefault = cardData['isDefault'] ?? false;
     final cardId = cardDoc.id;
 
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _selectedMethod == cardId ? const Color(0xFF0D47A1) : Colors.grey[300]!,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey[200]!,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: RadioListTile(
+        value: cardId,
+        groupValue: _selectedMethod,
+        onChanged: (value) {
+          setState(() {
+            _selectedMethod = value as String?;
+          });
+        },
+        title: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        _getCardIcon(cardType),
+                        color: Colors.blue[900],
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "•••• $lastFourDigits",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      if (isDefault) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Default',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.blue[900],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    cardholderName,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  Text(
+                    "Expires $expiryDate",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () => _showDeleteCardDialog(cardId, lastFourDigits),
+              color: Colors.grey[600],
+            ),
+          ],
+        ),
+        activeColor: const Color(0xFF0D47A1),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+    );
+  }
+
+  String _getCardType(String cardNumber) {
+    // Very basic detection - could be expanded with more sophisticated logic
+    if (cardNumber.startsWith('XXXX')) {
+      return 'Unknown';
+    } else if (cardNumber.startsWith('4')) {
+      return 'Visa';
+    } else if (cardNumber.startsWith('5')) {
+      return 'MasterCard';
+    } else if (cardNumber.startsWith('3')) {
+      return 'Amex';
+    } else {
+      return 'Unknown';
+    }
+  }
+
+ IconData _getCardIcon(String cardType) {
+    switch (cardType) {
+      case 'Visa':
+        return Icons.credit_card;
+      case 'MasterCard':
+        return Icons.credit_card;
+      case 'Amex':
+        return Icons.credit_card;
+      default:
+        return Icons.credit_card;
+    }
+  }
+
+void _showDeleteCardDialog(String cardId, String lastFourDigits) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Card'),
+          content: Text('Are you sure you want to delete card ending in $lastFourDigits?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('CANCEL'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteCard(cardId);
+              },
+              child: const Text('DELETE', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+   // Deletes a card document from Firestore
+  Future<void> _deleteCard(String cardId) async {
+    setState(() => _isLoading = true);
     
+    try {
+      // Get current authenticated user
+      final user = _auth.currentUser;
+      if (user == null) return;
+      
+      // Firebase Firestore delete operation - removes payment method document
+      await _firestore
+          .collection('customers')
+          .doc(user.uid)
+          .collection('paymentMethods')
+          .doc(cardId)
+          .delete();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Card deleted successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      
+      // Reset selected method if it was the deleted card
+      if (_selectedMethod == cardId) {
+        setState(() => _selectedMethod = null);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to delete card: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Widget _buildAddCardButton() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey[200]!,
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AddCardScreen()),
+            ).then((_) {
+              // Refresh the screen when returning from AddCardScreen
+              setState(() {});
+            });
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.credit_card,
+                    color: Colors.blue[700],
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const Text(
+                  'Add credit or debit card',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
   Widget _buildCreditCardOption() {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
