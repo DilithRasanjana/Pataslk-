@@ -146,6 +146,30 @@ class _ServiceProviderVerificationScreenState
       });
     }
   }
+  
+    try {
+      // Firebase Authentication: Resend verification code to the user's phone
+      await _authHelper.verifyPhoneNumber(
+        phoneNumber: widget.phone!,
+        resendToken: _localResendToken,
+        onCodeSent: (String newVerificationId, int? forceResendingToken) {
+          // Firebase: Handle successful code resend
+          setState(() {
+            _isResending = false;
+            _localResendToken = forceResendingToken;
+          });
+          for (var controller in _controllers) controller.clear();
+          if (_focusNodes.isNotEmpty) _focusNodes[0].requestFocus();
+          _startResendTimer();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Verification code resent successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        },
+        
+
 
   void _onCodeChanged(String value, int index) {
     if (value.length == 1 && index < 5) {
