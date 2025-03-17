@@ -167,7 +167,19 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                 ],
               ),
             ),
-            
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              onPressed: () => _showDeleteCardDialog(cardId, lastFourDigits),
+              color: Colors.grey[600],
+            ),
+          ],
+        ),
+        activeColor: const Color(0xFF0D47A1),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+    );
+  }
+
   Widget _buildCreditCardOption() {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
