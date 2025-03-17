@@ -119,7 +119,7 @@ class _ServiceProviderNotificationScreenState extends State<ServiceProviderNotif
       ),
     );
   }
-
+  
   Widget _buildNotificationCard({
     required Map<String, dynamic> notification, 
     required String notificationId
@@ -295,8 +295,8 @@ class _ServiceProviderNotificationScreenState extends State<ServiceProviderNotif
       ),
     );
   }
-
-   // Firebase batch operation to mark multiple notifications as read
+  
+  // Firebase batch operation to mark multiple notifications as read
   Future<void> _markNotificationsAsRead(List<QueryDocumentSnapshot> notifications) async {
     final batch = FirebaseFirestore.instance.batch();
     
@@ -329,4 +329,3 @@ class _ServiceProviderNotificationScreenState extends State<ServiceProviderNotif
     );
   }
 }
-
