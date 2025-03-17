@@ -87,6 +87,65 @@ class _ServiceProviderVerificationScreenState
       }
     }
   }
+  void _verifyCode() async {
+    String smsCode = _controllers.map((c) => c.text).join();
+    if (smsCode.length != 6) {
+      setState(() {
+        _errorMessage = "Please enter the complete 6-digit code";
+      });
+      return;
+    }
+
+    setState(() {
+      _isVerifying = true;
+      _errorMessage = '';
+    });
+
+    try {
+      // Firebase Authentication: Verify OTP code and sign in the user
+      var result = await _authHelper.signInWithOTP(
+        verificationId: widget.verificationId,
+        smsCode: smsCode,
+      );
+
+      if (result != null) {
+        bool isNewUser = result["isNewUser"] as bool;
+        if (widget.isSignUpFlow && isNewUser) {
+          // Firebase: Complete sign up flow for new users by saving data to Firestore
+          await _completeSignUp();
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+                builder: (context) => const ServiceProviderHomeScreen()),
+          );
+        }
+      } else {
+        setState(() {
+          _errorMessage = 'Verification failed. The code may be incorrect.';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Verification failed. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isVerifying = false;
+      });
+    }
+  }
 
   void _onCodeChanged(String value, int index) {
     if (value.length == 1 && index < 5) {
