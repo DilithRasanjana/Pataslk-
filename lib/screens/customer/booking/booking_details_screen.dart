@@ -152,13 +152,21 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
         selectedLocation = result['coordinates'] as LatLng;
         selectedAddress = result['address'] as String;
 
-        // Print for debugging
-        print(
-            'Selected Location: ${selectedLocation?.latitude}, ${selectedLocation?.longitude}');
-        print('Selected Address: $selectedAddress');
+        
       });
     }
   }
+   // Add payment method and navigation with mounted check
+  Future<void> _addPaymentMethod() async {
+    if (selectedDate == null || selectedTime == null || selectedAddress == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all required fields'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
   @override
   Widget build(BuildContext context) {
