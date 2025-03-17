@@ -30,7 +30,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
     // Simulate delay
     await Future.delayed(const Duration(seconds: 2));
 
-    
+    // Firebase Firestore update operation - updates payment details in booking document
+    await FirebaseFirestore.instance
+        .collection('bookings')
+        .doc(widget.bookingId)
+        .update({
+      'paymentMethod': _selectedPaymentMethod,
+      'paymentAddedAt': Timestamp.now(), // Using Firebase Timestamp for server-side timestamp
+      // We keep 'status': 'Pending' until the provider completes the job.
+    });    
     // Simulate payment processing
     Future.delayed(const Duration(seconds: 2), () {
       setState(() => _isProcessing = false);
