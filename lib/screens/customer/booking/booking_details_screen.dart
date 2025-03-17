@@ -182,6 +182,36 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
       _isLoading = false;
     }); 
 
+    if (bookingId != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PaymentScreen(
+            amount: widget.amount,
+            bookingId: bookingId,  // Pass Firebase document ID
+            onPaymentSuccess: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OrderStatusScreen(
+                    bookingId: bookingId,
+                    address: selectedAddress!,
+                    serviceType: widget.serviceType,
+                    jobRole: widget.serviceName,
+                    selectedDate: selectedDate!,
+                    selectedTime: selectedTime!,
+                    description: widget.description,
+                    uploadedImageUrl: widget.uploadedImageUrl, // Pass the image URL properly
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
