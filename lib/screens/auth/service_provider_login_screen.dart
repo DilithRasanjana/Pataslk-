@@ -28,67 +28,116 @@ class _ServiceProviderLoginScreenState extends State<ServiceProviderLoginScreen>
   // Firebase Firestore helper instance
   final FirestoreHelper _firestoreHelper = FirestoreHelper();
   bool _isLoading = false;
+  int _phoneAttempts = 0;
 
-  /// Helper method to format phone number with country code.
-  String _formatPhoneNumber(String raw) {
-    // For simplicity, just prepend +94. (Ensure your raw number has 9 digits.)
-    return '+94' + raw.trim();
+  /// Formats the raw phone number to E.164 format for Firebase Authentication.
+  String _formatPhoneNumber(String raw) => FirebaseAuthHelper.formatPhoneNumber(raw);
+
+  /// Validates the phone number.
+  String? _validatePhone(String value) {
+    if (value.isEmpty) {
+      return 'Please enter your phone number';
+    }
+    
+    final cleanDigits = value.replaceAll(RegExp(r'[^\d]'), '');
+    
+    // Accept either 9 digits (without leading zero) or 10 digits (with leading zero)
+    if (cleanDigits.length == 9) {
+      return null; // Valid
+    }
+    if (cleanDigits.length == 10 && cleanDigits.startsWith('0')) {
+      return null; // Valid with leading zero
+    }
+    
+    return 'Enter a valid Sri Lankan mobile number';
   }
 
   /// Login using phone number with Firebase Authentication.
   void _loginWithPhone() async {
-    String rawPhone = _phoneController.text;
-    String fullPhone = _formatPhoneNumber(rawPhone);
+    final validation = _validatePhone(_phoneController.text);
+    if (validation != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(validation), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    
+    String fullPhone = _formatPhoneNumber(_phoneController.text);
+    debugPrint("Attempting login with formatted phone: $fullPhone");
 
     setState(() {
       _isLoading = true;
     });
 
-    // Firebase Firestore: Check if a service provider exists by phone number
-    bool exists =
-        await _firestoreHelper.doesServiceProviderExistByPhone(phone: fullPhone);
-    if (!exists) {
+    // Check if this service provider exists
+    try {
+      bool exists = await _firestoreHelper.doesServiceProviderExistByPhone(phone: fullPhone);
+      if (!exists) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("No service provider found with this number. Please sign up."),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Sending verification code..."),
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      // Firebase Authentication: Start phone verification process
+      await _authHelper.verifyPhoneNumber(
+        phoneNumber: fullPhone, // Use formatted phone number
+        // Firebase Authentication: Handle successful SMS code sending
+        onCodeSent: (String verificationId, int? forceResendingToken) {
+          setState(() {
+            _isLoading = false;
+            _phoneAttempts = 0;
+          });
+          
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => ServiceProviderVerificationScreen(
+                verificationId: verificationId,
+                isSignUpFlow: false,
+                phone: fullPhone,
+                resendToken: forceResendingToken,
+              ),
+            ),
+          );
+        },
+        // Firebase Authentication: Handle verification errors
+        onError: (String error) {
+          _phoneAttempts++;
+          setState(() {
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(error),
+              backgroundColor: Colors.red,
+            ),
+          );
+        },
+      );
+    } catch (e) {
       setState(() {
         _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content:
-              Text("No such service provider found. Please sign up."),
+        SnackBar(
+          content: Text("Authentication error: $e"),
+          backgroundColor: Colors.red,
         ),
       );
-      return;
     }
-
-    // Firebase Authentication: Start phone verification process
-    await _authHelper.verifyPhoneNumber(
-      phoneNumber: fullPhone,
-      // Firebase Authentication: Handle successful SMS code sending
-      onCodeSent: (String verificationId, int? forceResendingToken) {
-        setState(() {
-          _isLoading = false;
-        });
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ServiceProviderVerificationScreen(
-              verificationId: verificationId,  // Firebase verification ID for SMS authentication
-              isSignUpFlow: false,
-              phone: fullPhone,
-              resendToken: forceResendingToken,  // Firebase token for resending verification code
-            ),
-          ),
-        );
-      },
-      // Firebase Authentication: Handle verification errors
-      onError: (String error) {
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(error)));
-      },
-    );
   }
 
   Widget _buildSocialButton(IconData icon, {Color? color}) {
