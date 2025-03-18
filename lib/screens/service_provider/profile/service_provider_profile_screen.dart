@@ -56,6 +56,15 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
   Future<void> _loadProfile() async {
     // Firebase Auth: Get current user
     User? user = _auth.currentUser;
+     if (user != null) {
+      // Firebase Firestore: Get provider document from serviceProviders collection
+      DocumentSnapshot doc = await _firestoreHelper
+          .getUserStream(collection: 'serviceProviders', uid: user.uid)
+          .first;
+      if (doc.exists) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        _firstNameController.text = data['firstName'] ?? '';
+        _lastNameController.text = data['lastName'] ?? '';
   final List<String> _districts = [
     'Ampara',
     'Anuradhapura',
