@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'booking/order_status_screen.dart';
-import 'home/home_screen.dart';
+import 'home/home_screen.dart'; // Import HomeScreen
 
 class ServicesScreen extends StatefulWidget {
   const ServicesScreen({Key? key}) : super(key: key);
@@ -18,6 +18,8 @@ class ServicesScreen extends StatefulWidget {
 class _ServicesScreenState extends State<ServicesScreen> {
   // Get current Firebase authenticated user
   final User? _currentUser = FirebaseAuth.instance.currentUser;
+  // Track processed notifications to prevent duplicates
+  final Map<String, String> _processedNotifications = {};
   bool _indexError = false;
 
   @override
@@ -592,6 +594,9 @@ class _ServicesScreenState extends State<ServicesScreen> {
   /// Approve job completion and mark status as completed in Firestore
   Future<void> _approveCompletion(String bookingId) async {
     try {
+      // Mark that we're handling this approval explicitly
+      _processedNotifications['$bookingId:approved'] = DateTime.now().toString();
+      
       // Get the booking data from Firestore
       final bookingDoc = await FirebaseFirestore.instance
           .collection('bookings')
@@ -646,6 +651,28 @@ class _ServicesScreenState extends State<ServicesScreen> {
     if (_currentUser == null) return;
     
     try {
+      // Check if similar notification exists in the last 5 minutes
+      final recentNotifications = await FirebaseFirestore.instance
+          .collection('notifications')
+          .where('userId', isEqualTo: _currentUser!.uid)
+          .where('bookingId', isEqualTo: bookingId)
+          .where('type', isEqualTo: type)
+          .orderBy('createdAt', descending: true)
+          .limit(1)
+          .get();
+      
+      // If recent notification exists, don't create another one
+      if (recentNotifications.docs.isNotEmpty) {
+        final lastNotification = recentNotifications.docs.first;
+        final lastTimestamp = lastNotification['createdAt'] as Timestamp;
+        final timeDiff = DateTime.now().difference(lastTimestamp.toDate());
+        
+        // If similar notification was created in the last 5 minutes, skip
+        if (timeDiff.inMinutes < 5) {
+          return;
+        }
+      }
+      
       // Add a new notification document to Firestore
       await FirebaseFirestore.instance.collection('notifications').add({
         'userId': _currentUser!.uid,
@@ -654,7 +681,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
         'bookingId': bookingId,
         'type': type,
         'read': false,
-        'createdAt': FieldValue.serverTimestamp(), // Server-side timestamp
+        'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
       debugPrint('Error creating notification: $e');
@@ -665,8 +692,17 @@ class _ServicesScreenState extends State<ServicesScreen> {
   void _listenForStatusChanges(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     final status = data['status'] ?? 'Pending';
-    final serviceName = data['serviceName'] ?? 'Unknown Service';
     final bookingId = doc.id;
+    
+    // Create a unique key for this booking's status
+    final notificationKey = '$bookingId:$status';
+    
+    // Skip if we've already processed this status
+    if (_processedNotifications.containsKey(notificationKey)) {
+      return;
+    }
+    
+    final serviceName = data['serviceName'] ?? 'Unknown Service';
     final providerName = data['providerName'] ?? 'Provider';
     
     // Create different notification types based on booking status
@@ -688,10 +724,28 @@ class _ServicesScreenState extends State<ServicesScreen> {
         );
         break;
       case 'Completed':
-        // This is handled in approveCompletion method
+        // Only create a notification if this wasn't from our explicit approval action
+        // (as that already creates a notification)
+        if (!_processedNotifications.containsKey('$bookingId:approved')) {
+          _createNotification(
+            title: 'Service Completed',
+            message: 'Your $serviceName service has been completed.',
+            bookingId: bookingId,
+            type: 'completed'
+          );
+        }
         break;
       default:
-        break;
+        return; // Don't track other statuses
+    }
+    
+    // Mark this notification as processed
+    _processedNotifications[notificationKey] = DateTime.now().toString();
+    
+    // Limit the size of the tracking map
+    if (_processedNotifications.length > 100) {
+      final oldestKey = _processedNotifications.keys.first;
+      _processedNotifications.remove(oldestKey);
     }
   }
 }
