@@ -125,6 +125,39 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
         userId: user.uid, 
         folder: 'profile_images',
       );
+
+      if (downloadUrl != null) {
+        // Firebase Firestore: Update profile with new image URL
+        await _firestoreHelper.saveUserData(
+          collection: 'serviceProviders',
+          uid: user.uid,
+          data: {'profileImageUrl': downloadUrl},
+        );
+        
+        setState(() {
+          _profileImageUrl = downloadUrl;
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile photo updated successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to upload profile photo'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+    
+    setState(() {
+      _isLoading = false;
+    });
+  }
   final List<String> _districts = [
     'Ampara',
     'Anuradhapura',
