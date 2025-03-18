@@ -46,6 +46,16 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
   // Firebase Storage: Helper for file storage operations
   final FirebaseStorageHelper _storageHelper = FirebaseStorageHelper();
 
+ @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  /// Loads the current service provider's profile from Firestore.
+  Future<void> _loadProfile() async {
+    // Firebase Auth: Get current user
+    User? user = _auth.currentUser;
   final List<String> _districts = [
     'Ampara',
     'Anuradhapura',
