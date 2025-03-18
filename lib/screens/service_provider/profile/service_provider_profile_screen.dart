@@ -46,7 +46,7 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
   // Firebase Storage: Helper for file storage operations
   final FirebaseStorageHelper _storageHelper = FirebaseStorageHelper();
 
- @override
+  @override
   void initState() {
     super.initState();
     _loadProfile();
@@ -56,7 +56,7 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
   Future<void> _loadProfile() async {
     // Firebase Auth: Get current user
     User? user = _auth.currentUser;
-     if (user != null) {
+    if (user != null) {
       // Firebase Firestore: Get provider document from serviceProviders collection
       DocumentSnapshot doc = await _firestoreHelper
           .getUserStream(collection: 'serviceProviders', uid: user.uid)
@@ -110,8 +110,8 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
     setState(() {
       _isLoading = true;
     });
-
-     // Firebase Auth: Get current user
+    
+    // Firebase Auth: Get current user
     User? user = _auth.currentUser;
     if (user != null) {
       // Firebase Storage: Delete old image if exists
@@ -125,7 +125,7 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
         userId: user.uid, 
         folder: 'profile_images',
       );
-
+      
       if (downloadUrl != null) {
         // Firebase Firestore: Update profile with new image URL
         await _firestoreHelper.saveUserData(
@@ -245,49 +245,14 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
       ),
     );
   }
-  final List<String> _districts = [
-    'Ampara',
-    'Anuradhapura',
-    'Badulla',
-    'Batticaloa',
-    'Colombo',
-    'Galle',
-    'Gampaha',
-    'Hambantota',
-    'Jaffna',
-    'Kalutara',
-    'Kandy',
-    'Kegalle',
-    'Kilinochchi',
-    'Kurunegala',
-    'Mannar',
-    'Matale',
-    'Matara',
-    'Monaragala',
-    'Mullaitivu',
-    'Nuwara Eliya',
-    'Polonnaruwa',
-    'Puttalam',
-    'Ratnapura',
-    'Trincomalee',
-    'Vavuniya'
-  ];
 
   @override
   void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
-    _nameController.dispose();
     super.dispose();
-  }
-
-  void _saveProfile() {
-    if (_formKey.currentState!.validate()) {
-      // Save profile logic here
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
-      );
-    }
   }
 
   @override
@@ -295,90 +260,56 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        title: const Text('Service Provider Profile'),
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          TextButton(
+            onPressed: _saveProfile,
+            child: const Text(
+              'Save Profile',
+              style: TextStyle(color: Color(0xFF0D47A1), fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Profile',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: _saveProfile,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[900],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Save',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Center(
-                  child: Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () async {
-                          final File? result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const ServiceProviderPhotoUploadScreen(),
-                            ),
-                          );
-                          if (result != null) {
-                            setState(() {
-                              _profileImage = result;
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content:
-                                    Text('Profile photo updated successfully'),
-                                backgroundColor: Colors.blue,
-                              ),
-                            );
-                          }
-                        },
+                    // Profile Picture Section
+                    Center(
+                      child: GestureDetector(
+                        onTap: _editProfilePhoto,
                         child: Stack(
                           children: [
                             CircleAvatar(
-                              radius: 40,
+                              radius: 50,
                               backgroundColor: Colors.grey[200],
-                              backgroundImage: _profileImage != null
-                                  ? FileImage(_profileImage!)
-                                  : null,
+                              backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
                               child: _profileImage == null
-                                  ? const Icon(
-                                      Icons.person,
-                                      size: 50,
-                                      color: Colors.blue,
-                                    )
+                                  ? _profileImageUrl != null
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(50),
+                                          child: CachedNetworkImage(
+                                            imageUrl: _profileImageUrl!,
+                                            fit: BoxFit.cover,
+                                            width: 100,
+                                            height: 100,
+                                            placeholder: (context, url) => const CircularProgressIndicator(),
+                                            errorWidget: (context, url, error) => 
+                                                const Icon(Icons.person, size: 50, color: Colors.blue),
+                                          ),
+                                        )
+                                      : const Icon(Icons.person, size: 50, color: Colors.blue)
                                   : null,
                             ),
                             Positioned(
@@ -387,273 +318,116 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
                               child: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  color: Colors.blue[900],
+                                  color: const Color(0xFF0D47A1),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(
-                                  Icons.edit,
-                                  size: 16,
-                                  color: Colors.white,
-                                ),
+                                child: const Icon(Icons.edit, size: 20, color: Colors.white),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          hintText: 'Enter your name',
-                          border: UnderlineInputBorder(),
-                        ),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-                _buildInfoSection(
-                  'Phone Number',
-                  Row(
-                    children: [
-                      Image.asset(
-                        'assets/Assets-main/Assets-main/circle 1.png', // Updated to use local asset
-                        width: 24,
-                        height: 24,
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        '+94',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _phoneController,
-                          keyboardType: TextInputType.phone,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(10),
-                          ],
-                          decoration: const InputDecoration(
-                            hintText: 'Enter phone number',
-                            border: InputBorder.none,
+                    ),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // First Name
+                          _buildProfileField(
+                            'First Name',
+                            _buildTextField('Enter first name', _firstNameController),
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your phone number';
-                            }
-                            if (value.length != 10) {
-                              return 'Phone number must be 10 digits';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                _buildInfoSection(
-                  'E-mail',
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter your email',
-                      border: InputBorder.none,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                _buildInfoSection(
-                  'Date of Birth',
-                  GestureDetector(
-                    onTap: () async {
-                      final DateTime? picked = await showDatePicker(
-                        context: context,
-                        initialDate: _selectedDate ?? DateTime.now(),
-                        firstDate: DateTime(1923),
-                        lastDate: DateTime.now(),
-                      );
-                      if (picked != null && picked != _selectedDate) {
-                        setState(() {
-                          _selectedDate = picked;
-                        });
-                      }
-                    },
-                    child: AbsorbPointer(
-                      child: TextField(
-                        controller: TextEditingController(
-                          text: _selectedDate != null
-                              ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
-                              : '',
-                        ),
-                        decoration: InputDecoration(
-                          labelText: 'Date of Birth',
-                          suffixIcon: const Icon(Icons.calendar_today),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                          // Last Name
+                          _buildProfileField(
+                            'Last Name',
+                            _buildTextField('Enter last name', _lastNameController),
                           ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                _buildInfoSection(
-                  'Gender',
-                  DropdownButtonFormField<String>(
-                    value: _selectedGender,
-                    decoration: const InputDecoration(
-                      hintText: 'Select gender',
-                      border: InputBorder.none,
-                    ),
-                    items: _genders.map((String gender) {
-                      return DropdownMenuItem(
-                        value: gender,
-                        child: Text(gender),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedGender = newValue;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select your gender';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                _buildInfoSection(
-                  'Occupation',
-                  DropdownButtonFormField<String>(
-                    value: _selectedOccupation,
-                    decoration: const InputDecoration(
-                      hintText: 'Select occupation',
-                      border: InputBorder.none,
-                    ),
-                    items: _occupations.map((String occupation) {
-                      return DropdownMenuItem(
-                        value: occupation,
-                        child: Text(occupation),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedOccupation = newValue;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select your occupation';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                _buildInfoSection(
-                  'Operating Districts',
-                  Column(
-                    children: [
-                      MultiSelectDialogField<String>(
-                        items: _districts
-                            .map((district) => MultiSelectItem<String>(
-                                  district,
-                                  district,
-                                ))
-                            .toList(),
-                        initialValue: _selectedDistricts,
-                        title: const Text("Select Districts"),
-                        selectedColor: Colors.blue,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.grey.shade300,
+                          // Phone Number (with "+94" displayed separately)
+                          _buildProfileField(
+                            'Phone Number',
+                            Row(
+                              children: [
+                                const Text('+94 '),
+                                Expanded(
+                                  child: _buildTextField('Enter phone number', _phoneController, keyboardType: TextInputType.phone),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        buttonIcon: const Icon(Icons.arrow_drop_down),
-                        buttonText: Text(
-                          _selectedDistricts.isEmpty
-                              ? "Select operating districts"
-                              : "${_selectedDistricts.length} districts selected",
-                        ),
-                        onConfirm: (results) {
-                          setState(() {
-                            _selectedDistricts = results;
-                          });
-                        },
-                        validator: (values) {
-                          if (values == null || values.isEmpty) {
-                            return 'Please select at least one district';
-                          }
-                          return null;
-                        },
+                          // Email (read-only)
+                          _buildProfileField(
+                            'E-mail',
+                            _buildTextField('Enter email', _emailController, keyboardType: TextInputType.emailAddress, readOnly: true),
+                          ),
+                          // Job Role (dropdown)
+                          _buildProfileField(
+                            'Job Role',
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: DropdownButtonFormField<String>(
+                                value: _selectedJobRole,
+                                isExpanded: true,
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                ),
+                                hint: const Text('Select job role'),
+                                items: _jobRoles.map((role) {
+                                  return DropdownMenuItem(
+                                    value: role,
+                                    child: Text(role),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedJobRole = value;
+                                  });
+                                },
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please select a job role';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          // Save Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _saveProfile,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF0D47A1),
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                'Save',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      MultiSelectChipDisplay<String>(
-                        items: _selectedDistricts
-                            .map((district) =>
-                                MultiSelectItem<String>(district, district))
-                            .toList(),
-                        onTap: (value) {
-                          setState(() {
-                            _selectedDistricts.remove(value);
-                          });
-                        },
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoSection(String title, Widget content) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: content,
-        ),
-        const SizedBox(height: 24),
-      ],
     );
   }
 }
