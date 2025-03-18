@@ -91,6 +91,15 @@ class _ServiceProviderServicesScreenState
     );
   }
 
+  
+  /// Builds a list of bookings from Firestore for the current provider
+  /// that match the given [statusList].
+  Widget _buildBookingsList({
+    required List<String> statusList,
+    required String emptyTitle,
+    required String emptyMessage,
+  }) 
+
   Widget _buildEmptyState(String title, String message) {
     return Center(
       child: Column(
