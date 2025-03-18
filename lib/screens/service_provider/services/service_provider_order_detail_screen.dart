@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:latlong2/latlong.dart'; // Add this import
 import '../home/service_provider_home_screen.dart';
+import 'booking_location_map_screen.dart'; // Add this import
 
 class ServiceProviderOrderDetailScreen extends StatefulWidget {
   final String bookingId;
@@ -45,6 +47,37 @@ class _ServiceProviderOrderDetailScreenState
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  // Navigate to the location map screen
+  void _viewLocationOnMap(Map<String, dynamic> data) {
+    // Check if we have location data
+    if (data['latitude'] == null || data['longitude'] == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Location coordinates not available for this booking'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Create a LatLng object from the booking data
+    final location = LatLng(data['latitude'], data['longitude']);
+    final address = data['location'] ?? 'Unknown location';
+    final customerName = data['customerName'] ?? 'Customer';
+
+    Navigator.push(
+      context, 
+      MaterialPageRoute(
+        builder: (context) => BookingLocationMapScreen(
+          location: location,
+          address: address,
+          bookingId: widget.bookingId,
+          customerName: customerName,
+        ),
+      ),
+    );
   }
 
   /// Accept the job => update the booking doc with provider info and status.
@@ -188,6 +221,9 @@ class _ServiceProviderOrderDetailScreenState
     final description = data['description'] ?? 'No description';
     final imageUrl = data['imageUrl'] as String?; // Get the image URL
 
+    // Check if location coordinates are available for the map button
+    final bool hasLocationData = data['latitude'] != null && data['longitude'] != null;
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -283,22 +319,95 @@ class _ServiceProviderOrderDetailScreenState
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Location
-                  Row(
+                  // Location with View on Map button
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.location_on, color: Colors.grey, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          location,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[700],
-                          ),
+                      // Location header
+                      const Text(
+                        'Location',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      // Location display card
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.white,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Show location address
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(Icons.location_on, color: Colors.grey, size: 20),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    location,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            
+                            const SizedBox(height: 12),
+                            
+                            // View on Map button
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                icon: const Icon(Icons.map),
+                                label: const Text('View Location on Map'),
+                                onPressed: hasLocationData 
+                                  ? () => _viewLocationOnMap(data)
+                                  : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue[700],
+                                  foregroundColor: Colors.white,
+                                  disabledBackgroundColor: Colors.grey[400],
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                              ),
+                            ),
+                            
+                            // Show warning if no coordinates
+                            if (!hasLocationData)
+                              Container(
+                                margin: const EdgeInsets.only(top: 8),
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange[50],
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.orange[200]!),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.warning_amber, color: Colors.orange[700], size: 16),
+                                    const SizedBox(width: 8),
+                                    const Expanded(
+                                      child: Text(
+                                        'Exact location coordinates not available',
+                                        style: TextStyle(fontSize: 12),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ],
                   ),
+                  
                   const SizedBox(height: 32),
                   // Job Description
                   const Text(
@@ -329,7 +438,7 @@ class _ServiceProviderOrderDetailScreenState
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Accept or skip
+                  // Accept or skip buttons
                   if (status == 'Pending') ...[
                     Row(
                       children: [
@@ -385,7 +494,7 @@ class _ServiceProviderOrderDetailScreenState
                       ],
                     ),
                   ] else ...[
-                    // If status != Pending, we can show something else
+                    // If status != Pending, show status message
                     const SizedBox(height: 16),
                     Text(
                       'This booking is already $status.',
