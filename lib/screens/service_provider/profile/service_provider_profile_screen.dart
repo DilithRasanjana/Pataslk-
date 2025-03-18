@@ -65,6 +65,51 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         _firstNameController.text = data['firstName'] ?? '';
         _lastNameController.text = data['lastName'] ?? '';
+        // Remove +94 prefix for editing.
+        if (data['phone'] != null) {
+          String phone = data['phone'];
+          _phoneController.text = phone.startsWith('+94') ? phone.substring(3) : phone;
+        }
+        _emailController.text = data['email'] ?? '';
+        _selectedJobRole = data['jobRole'];
+        
+        // Load profile image URL if stored
+        setState(() {
+          _profileImageUrl = data['profileImageUrl'];
+        });
+      }
+    }
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  /// Updates the profile image by navigating to the photo upload screen
+  Future<void> _editProfilePhoto() async {
+    final File? result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ServiceProviderPhotoUploadScreen(),
+      ),
+    );
+    
+    if (result != null) {
+      setState(() {
+        _profileImage = result;
+      });
+      
+      // Upload immediately when a new photo is selected
+      _uploadProfileImage();
+    }
+  }
+
+  /// Uploads the profile image to Firebase Storage
+  Future<void> _uploadProfileImage() async {
+    if (_profileImage == null) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
   final List<String> _districts = [
     'Ampara',
     'Anuradhapura',
