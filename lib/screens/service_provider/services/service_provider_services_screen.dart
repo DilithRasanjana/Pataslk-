@@ -60,6 +60,36 @@ class _ServiceProviderServicesScreenState
             ],
           ),
         ),
+        body: TabBarView(
+          children: [
+            // UPCOMING: Pending, InProgress and PendingApproval (moved from History to Upcoming)
+            _buildBookingsList(
+              statusList: ['Pending', 'InProgress', 'PendingApproval'],
+              emptyTitle: 'No Upcoming Order',
+              emptyMessage:
+                  'Currently you don\'t have any upcoming order.\nPlace and track your orders from here.',
+            ),
+
+            // HISTORY: Only Completed now
+            _buildBookingsList(
+              statusList: ['Completed'],
+              emptyTitle: 'No History Order',
+              emptyMessage:
+                  'Currently you don\'t have any completed order.\nPlace and track your orders from here.',
+            ),
+
+            // DRAFT: Draft (unchanged)
+            _buildBookingsList(
+              statusList: ['Draft'],
+              emptyTitle: 'No Draft Order',
+              emptyMessage:
+                  'Currently you don\'t have any draft order.\nPlace and track your orders from here.',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildEmptyState(String title, String message) {
     return Center(
