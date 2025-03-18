@@ -49,6 +49,107 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// This simple loading screen prevents navigation conflicts during startup
+class SafeStartupScreen extends StatefulWidget {
+  const SafeStartupScreen({super.key});
+
+  @override
+  State<SafeStartupScreen> createState() => _SafeStartupScreenState();
+}
+
+class _AuthCheckScreenState extends State<AuthCheckScreen> {
+  final FirebaseAuthHelper _authHelper = FirebaseAuthHelper();
+  final FirestoreHelper _firestoreHelper = FirestoreHelper();
+  bool _isChecking = true;
+  
+  @override
+  void initState() {
+    super.initState();
+    // Use a post-frame callback to avoid navigation during build
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _checkAuthentication();
+    });
+  }
+  
+  Future<void> _checkAuthentication() async {
+    if (!mounted) return;
+    
+    try {
+      if (_authHelper.isAuthenticated()) {
+        final user = _authHelper.getCurrentUser();
+        if (user != null) {
+          // Check if this user is a service provider
+          try {
+            final serviceProviderDoc = await _firestoreHelper.getUserDocument(
+              collection: 'serviceProviders', 
+              uid: user.uid
+            );
+            
+            if (serviceProviderDoc != null && serviceProviderDoc.exists && mounted) {
+              // Navigate to service provider home with a small delay
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const ServiceProviderHomeScreen()),
+              );
+              return;
+            }
+            
+            // Then check if user is a customer
+            final customerDoc = await _firestoreHelper.getUserDocument(
+              collection: 'customers', 
+              uid: user.uid
+            );
+            
+            if (customerDoc != null && customerDoc.exists && mounted) {
+              // Navigate to customer home
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+              );
+              return;
+            }
+          } catch (e) {
+            debugPrint("Error checking user type: $e");
+          }
+        }
+      }
+      
+      // If not authenticated or user type not found, go to splash screen
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const SplashScreen()),
+        );
+      }
+    } catch (e) {
+      debugPrint("Auth check error: $e");
+      // On error, default to splash screen
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const SplashScreen()),
+        );
+      }
+    }
+  }
+  
+  
+
+class _SafeStartupScreenState extends State<SafeStartupScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Use a post-frame callback to avoid navigation during build
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _safeNavigate();
+    });
+  }
+  
+  Future<void> _safeNavigate() async {
+    if (!mounted) return;
+    
+    // Navigate to authentication check screen
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const AuthCheckScreen()),
+    );
+  }
+  
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
   

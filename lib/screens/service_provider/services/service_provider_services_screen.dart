@@ -98,7 +98,25 @@ class _ServiceProviderServicesScreenState
     required List<String> statusList,
     required String emptyTitle,
     required String emptyMessage,
-  }) 
+  }) {
+    return StreamBuilder<QuerySnapshot>(
+      // Firebase Firestore: Query bookings collection with multiple filters
+      stream: FirebaseFirestore.instance
+          .collection('bookings')
+          .where('provider_id', isEqualTo: _currentUser!.uid)
+          .where('status', whereIn: statusList)
+          .orderBy('createdAt', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
+          );
+        }
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+      }
 
   Widget _buildEmptyState(String title, String message) {
     return Center(
