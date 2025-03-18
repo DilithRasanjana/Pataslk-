@@ -116,6 +116,22 @@ class _ServiceProviderServicesScreenState
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
+
+        final docs = snapshot.data!.docs;
+        if (docs.isEmpty) {
+          return _buildEmptyState(emptyTitle, emptyMessage);
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final doc = docs[index];
+            return _buildBookingCard(doc);
+          },
+        );
+      },
+    );
+
       }
 
   Widget _buildEmptyState(String title, String message) {
