@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import '../../../utils/firebase_firestore_helper.dart'; // Add this import
 import 'service_provider_home_screen.dart';
 import '../services/service_provider_order_detail_screen.dart';
 
@@ -13,13 +14,31 @@ class ServiceProviderNotificationScreen extends StatefulWidget {
 }
 
 class _ServiceProviderNotificationScreenState extends State<ServiceProviderNotificationScreen> {
-  // Firebase Auth instance to get current user
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirestoreHelper _firestoreHelper = FirestoreHelper();
   String _sortBy = 'recent';
+  bool _isLoading = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    // Mark all notifications as read when screen opens
+    _markAllAsRead();
+  }
+  
+  // Mark all notifications as read
+  Future<void> _markAllAsRead() async {
+    final User? currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      await _firestoreHelper.markAllNotificationsAsRead(
+        collectionName: 'provider_notifications',
+        userId: currentUser.uid,
+      );
+    }
+  }
   
   @override
   Widget build(BuildContext context) {
-    // Get the current Firebase user
     final User? currentUser = _auth.currentUser;
     
     if (currentUser == null) {
@@ -78,9 +97,19 @@ class _ServiceProviderNotificationScreenState extends State<ServiceProviderNotif
             ),
           ],
         ),
+        actions: [
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: 20, 
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // Firestore query to get provider-specific notifications with real-time updates
         stream: FirebaseFirestore.instance
             .collection('provider_notifications')
             .where('providerId', isEqualTo: currentUser.uid)
@@ -96,9 +125,6 @@ class _ServiceProviderNotificationScreenState extends State<ServiceProviderNotif
           }
           
           final notifications = snapshot.data?.docs ?? [];
-          
-          // Firestore batch update to mark notifications as read
-          _markNotificationsAsRead(notifications);
           
           if (notifications.isEmpty) {
             return _buildEmptyState();
@@ -132,7 +158,6 @@ class _ServiceProviderNotificationScreenState extends State<ServiceProviderNotif
     final String? bookingId = notification['bookingId'];
     final double? amount = notification['amount'];
     
-    // Choose icon based on notification type
     IconData notificationIcon;
     Color iconColor;
     
@@ -202,7 +227,6 @@ class _ServiceProviderNotificationScreenState extends State<ServiceProviderNotif
             ),
           ),
           
-          // If this is a payment notification, show the amount
           if (type == 'payment' && amount != null)
             Container(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -296,21 +320,6 @@ class _ServiceProviderNotificationScreenState extends State<ServiceProviderNotif
     );
   }
   
-  // Firebase batch operation to mark multiple notifications as read
-  Future<void> _markNotificationsAsRead(List<QueryDocumentSnapshot> notifications) async {
-    final batch = FirebaseFirestore.instance.batch();
-    
-    for (final doc in notifications) {
-      final notificationData = doc.data() as Map<String, dynamic>;
-      if (notificationData['read'] != true) {
-        batch.update(doc.reference, {'read': true});
-      }
-    }
-    
-    await batch.commit();
-  }
-  
-  // Firebase delete operation to remove a notification
   Future<void> _deleteNotification(String notificationId) async {
     await FirebaseFirestore.instance
         .collection('provider_notifications')
