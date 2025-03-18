@@ -49,6 +49,33 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// This simple loading screen prevents navigation conflicts during startup
+class SafeStartupScreen extends StatefulWidget {
+  const SafeStartupScreen({super.key});
+
+  @override
+  State<SafeStartupScreen> createState() => _SafeStartupScreenState();
+}
+
+class _SafeStartupScreenState extends State<SafeStartupScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Use a post-frame callback to avoid navigation during build
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _safeNavigate();
+    });
+  }
+  
+  Future<void> _safeNavigate() async {
+    if (!mounted) return;
+    
+    // Navigate to authentication check screen
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const AuthCheckScreen()),
+    );
+  }
+  
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
   
