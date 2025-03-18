@@ -34,6 +34,33 @@ class _ServiceProviderServicesScreenState
       );
     }
 
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: const Text(
+            'Bookings',
+            style: TextStyle(
+              color: Colors.black87,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          bottom: TabBar(
+            labelColor: const Color(0xFF0D47A1),
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: const Color(0xFF0D47A1),
+            tabs: const [
+              Tab(text: 'Upcoming'),
+              Tab(text: 'History'),
+              Tab(text: 'Draft'),
+            ],
+          ),
+        ),
+
   Widget _buildEmptyState(String title, String message) {
     return Center(
       child: Column(
