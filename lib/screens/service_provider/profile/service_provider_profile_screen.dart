@@ -1,39 +1,50 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:multi_select_flutter/multi_select_flutter.dart';
-import 'service_provider_photo_upload_screen.dart';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../../utils/firebase_firestore_helper.dart';
+import '../../../utils/firebase_storage_helper.dart';
+import 'service_provider_photo_upload_screen.dart';
 
 class ServiceProviderProfileScreen extends StatefulWidget {
-  const ServiceProviderProfileScreen({Key? key}) : super(key: key);
+  const ServiceProviderProfileScreen({super.key});
 
   @override
-  State<ServiceProviderProfileScreen> createState() =>
-      _ServiceProviderProfileScreenState();
+  State<ServiceProviderProfileScreen> createState() => _ServiceProviderProfileScreenState();
 }
 
-class _ServiceProviderProfileScreenState
-    extends State<ServiceProviderProfileScreen> {
+class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScreen> {
   final _formKey = GlobalKey<FormState>();
+
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
-  final _nameController = TextEditingController();
-  String? _selectedGender;
-  String? _selectedOccupation;
-  DateTime? _selectedDate;
-  List<String> _selectedDistricts = [];
+  String? _selectedJobRole;
   File? _profileImage;
+  String? _profileImageUrl;
 
-  final List<String> _genders = ['Male', 'Female'];
-  final List<String> _occupations = [
-    'AC Mechanic',
-    'Appliance Mechanic',
-    'Beautician',
-    'Plumber',
-    'Electrician',
-    'Professional Painter',
-    'Professional Cleaner'
+  final List<String> _jobRoles = [
+    'AC Repair',
+    'Beauty',
+    'Appliance',
+    'Painting',
+    'Cleaning',
+    'Plumbing',
+    'Electronics',
+    'Men\'s Salon',
+    'Shifting'
   ];
+
+  bool _isLoading = true;
+  // Firebase Auth: Access to authentication services
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  // Firebase Firestore: Helper for database operations
+  final FirestoreHelper _firestoreHelper = FirestoreHelper();
+  // Firebase Storage: Helper for file storage operations
+  final FirebaseStorageHelper _storageHelper = FirebaseStorageHelper();
 
   final List<String> _districts = [
     'Ampara',
