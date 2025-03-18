@@ -24,6 +24,16 @@ class _ServiceProviderServicesScreenState
     _listenForBookingStatusChanges();
   }
 
+  @override
+  Widget build(BuildContext context) {
+    if (_currentUser == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text('Please log in to view your bookings.'),
+        ),
+      );
+    }
+
   Widget _buildEmptyState(String title, String message) {
     return Center(
       child: Column(
