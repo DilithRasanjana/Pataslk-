@@ -110,6 +110,21 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
     setState(() {
       _isLoading = true;
     });
+
+     // Firebase Auth: Get current user
+    User? user = _auth.currentUser;
+    if (user != null) {
+      // Firebase Storage: Delete old image if exists
+      if (_profileImageUrl != null) {
+        await _storageHelper.deleteFileByUrl(_profileImageUrl!);
+      }
+      
+      // Firebase Storage: Upload new image
+      String? downloadUrl = await _storageHelper.uploadFile(
+        file: _profileImage!, 
+        userId: user.uid, 
+        folder: 'profile_images',
+      );
   final List<String> _districts = [
     'Ampara',
     'Anuradhapura',
