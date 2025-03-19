@@ -70,16 +70,16 @@ class _ServicesScreenState extends State<ServicesScreen> {
         ),
         body: TabBarView(
           children: [
-            // 1) Upcoming tab
+            // 1) Upcoming tab - Include "Pending" status
             _buildBookingsList(
               statusList: ['Pending', 'InProgress', 'PendingApproval'],
               emptyTitle: 'No Upcoming Orders',
               emptySubtitle:
                   'Currently you don\'t have any upcoming orders.\nPlace and track your orders from here.',
             ),
-            // 2) History tab
+            // 2) History tab - Add "Expired" to the list of statuses
             _buildBookingsList(
-              statusList: ['Completed'],
+              statusList: ['Completed', 'Incomplete', 'Expired'],
               emptyTitle: 'No History Order',
               emptySubtitle:
                   'Currently you don\'t have any History order.\nPlace and track your orders from here.',
@@ -303,7 +303,23 @@ class _ServicesScreenState extends State<ServicesScreen> {
     final providerName = data['providerName'] ?? 'Service provider'; // If not assigned, fallback
     final scheduleText = _formatSchedule(bookingDate, bookingTime);
     final description = data['description'] ?? '';
-    final address = data['location'] ?? '';
+    
+    // Handle the location data which could be either a String or a Map
+    String locationDisplay = 'Unknown location';
+    if (data['location'] != null) {
+      if (data['location'] is Map) {
+        // New format: location is a map with address key
+        final locationMap = data['location'] as Map<String, dynamic>;
+        locationDisplay = locationMap['address'] as String? ?? 'Unknown location';
+      } else if (data['location'] is String) {
+        // Old format: location is directly a string
+        locationDisplay = data['location'] as String;
+      }
+    } else if (data['address'] != null && data['address'] is String) {
+      // Fallback to address field if it exists
+      locationDisplay = data['address'] as String;
+    }
+    
     // Get the image URL if it exists
     final imageUrl = data['imageUrl'] as String?;
 
@@ -322,7 +338,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
             MaterialPageRoute(
               builder: (context) => OrderStatusScreen(
                 bookingId: bookingId,
-                address: address,
+                address: locationDisplay, // Use locationDisplay instead of data['location']
                 serviceType: serviceType,
                 jobRole: serviceName,
                 selectedDate: bookingDate,
@@ -479,7 +495,30 @@ class _ServicesScreenState extends State<ServicesScreen> {
                       ],
                     ),
                     
-                    // For PendingApproval status, show approve button
+                    // For Pending status, show cancel/delete button
+                    if (status == 'Pending') ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: () => _showCancelBookingDialog(bookingId, serviceName),
+                            icon: const Icon(Icons.delete, size: 16),
+                            label: const Text('Cancel Booking'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    
+                    // For PendingApproval status, show approve button and incomplete button
                     if (status == 'PendingApproval') ...[
                       const SizedBox(height: 16),
                       Row(
@@ -503,6 +542,25 @@ class _ServicesScreenState extends State<ServicesScreen> {
                               ),
                             ),
                           ),
+                          const SizedBox(width: 8),
+                          // Add Incomplete button
+                          ElevatedButton(
+                            onPressed: () => _markAsIncomplete(bookingId),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Incomplete',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -513,6 +571,33 @@ class _ServicesScreenState extends State<ServicesScreen> {
                           fontStyle: FontStyle.italic,
                           color: Colors.grey,
                         ),
+                      ),
+                    ],
+                    
+                    // For InProgress status, show incomplete button
+                    if (status == 'InProgress') ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () => _markAsIncomplete(bookingId),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Mark as Incomplete',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                     
@@ -679,56 +764,6 @@ class _ServicesScreenState extends State<ServicesScreen> {
         style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
       ),
     );
-  }
-
-/// Approve job completion and mark status as completed in Firestore
-  Future<void> _approveCompletion(String bookingId) async {
-    try {
-      // Mark that we're handling this approval explicitly
-      _processedNotifications['$bookingId:approved'] = DateTime.now().toString();
-      
-      // Get the booking data from Firestore
-      final bookingDoc = await FirebaseFirestore.instance
-          .collection('bookings')
-          .doc(bookingId)
-          .get();
-          
-      if (bookingDoc.exists) {
-        final bookingData = bookingDoc.data() as Map<String, dynamic>;
-        final serviceName = bookingData['serviceName'] ?? 'Unknown Service';
-        final providerName = bookingData['providerName'] ?? 'Provider';
-        
-        // Update the booking status in Firestore
-        await FirebaseFirestore.instance
-            .collection('bookings')
-            .doc(bookingId)
-            .update({'status': 'Completed'});
-
-        // Create a notification in Firestore about the completion
-        await _createNotification(
-          title: 'Service Completed',
-          message: 'You have approved the completion of $serviceName by $providerName.',
-          bookingId: bookingId,
-          type: 'completed'
-        );
-            
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Job completion approved!'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error approving completion: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to approve completion'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 
   /// Approve job completion and mark status as completed in Firestore
@@ -913,7 +948,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     }
   }
   
-/// Listen for status changes in bookings and create notifications
+  /// Listen for status changes in bookings and create notifications
   void _listenForStatusChanges(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     final status = data['status'] ?? 'Pending';
@@ -974,4 +1009,3 @@ class _ServicesScreenState extends State<ServicesScreen> {
     }
   }
 }
-
