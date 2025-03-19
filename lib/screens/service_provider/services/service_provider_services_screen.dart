@@ -215,6 +215,10 @@ class _ServiceProviderServicesScreenState
       locationDisplay = data['address'] as String;
     }
 
+    final description = data['description'] ?? 'No description';
+    final amount = data['amount'] ?? 0.0;
+    final imageUrl = data['imageUrl'] as String?;
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
