@@ -913,7 +913,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     }
   }
   
-  /// Listen for status changes in bookings and create notifications
+/// Listen for status changes in bookings and create notifications
   void _listenForStatusChanges(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     final status = data['status'] ?? 'Pending';
@@ -974,3 +974,4 @@ class _ServicesScreenState extends State<ServicesScreen> {
     }
   }
 }
+
