@@ -573,6 +573,12 @@ class _ServicesScreenState extends State<ServicesScreen> {
       case 'Draft':
         badgeColor = Colors.grey;
         break;
+      case 'Incomplete':
+        badgeColor = Colors.red;
+        break;
+      case 'Expired':
+        badgeColor = Colors.grey;
+        break;
       default:
         badgeColor = Colors.orange;
         break;
