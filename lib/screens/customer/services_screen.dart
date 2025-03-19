@@ -781,50 +781,88 @@ class _ServicesScreenState extends State<ServicesScreen> {
     }
   }
   
-  /// Create a notification document in Firestore
-  Future<void> _createNotification({
-    required String title,
-    required String message,
-    required String bookingId,
-    required String type,
-  }) async {
-    if (_currentUser == null) return;
+  /// Mark job as incomplete
+  Future<void> _markAsIncomplete(String bookingId) async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Mark as Incomplete?'),
+        content: const Text('Are you sure you want to mark this job as incomplete? This cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Yes, Mark Incomplete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirmed != true) return;
     
     try {
-      // Check if similar notification exists in the last 5 minutes
-      final recentNotifications = await FirebaseFirestore.instance
-          .collection('notifications')
-          .where('userId', isEqualTo: _currentUser!.uid)
-          .where('bookingId', isEqualTo: bookingId)
-          .where('type', isEqualTo: type)
-          .orderBy('createdAt', descending: true)
-          .limit(1)
+      // Mark that we're handling this status change explicitly
+      _processedNotifications['$bookingId:incomplete'] = DateTime.now().toString();
+      
+      // Get the booking data from Firestore
+      final bookingDoc = await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(bookingId)
           .get();
-      
-      // If recent notification exists, don't create another one
-      if (recentNotifications.docs.isNotEmpty) {
-        final lastNotification = recentNotifications.docs.first;
-        final lastTimestamp = lastNotification['createdAt'] as Timestamp;
-        final timeDiff = DateTime.now().difference(lastTimestamp.toDate());
+          
+      if (bookingDoc.exists) {
+        final bookingData = bookingDoc.data() as Map<String, dynamic>;
+        final serviceName = bookingData['serviceName'] ?? 'Unknown Service';
+        final providerName = bookingData['providerName'] ?? 'Provider';
+        final providerId = bookingData['provider_id'];
         
-        // If similar notification was created in the last 5 minutes, skip
-        if (timeDiff.inMinutes < 5) {
-          return;
+        // Update the booking status in Firestore
+        await FirebaseFirestore.instance
+            .collection('bookings')
+            .doc(bookingId)
+            .update({'status': 'Incomplete'});
+
+        // Create a notification for the customer
+        await _createNotification(
+          title: 'Service Marked Incomplete',
+          message: 'You have marked $serviceName by $providerName as incomplete.',
+          bookingId: bookingId,
+          type: 'incomplete'
+        );
+        
+        // Create a notification for the provider if provider ID exists
+        if (providerId != null) {
+          await FirebaseFirestore.instance.collection('provider_notifications').add({
+            'providerId': providerId,
+            'title': 'Job Marked as Incomplete',
+            'message': 'The customer has marked the $serviceName job as incomplete.',
+            'bookingId': bookingId,
+            'type': 'incomplete',
+            'read': false,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
         }
+            
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Job marked as incomplete'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 2),
+          ),
+        );
       }
-      
-      // Add a new notification document to Firestore
-      await FirebaseFirestore.instance.collection('notifications').add({
-        'userId': _currentUser!.uid,
-        'title': title,
-        'message': message,
-        'bookingId': bookingId,
-        'type': type,
-        'read': false,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
     } catch (e) {
-      debugPrint('Error creating notification: $e');
+      debugPrint('Error marking as incomplete: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to update status'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
   
