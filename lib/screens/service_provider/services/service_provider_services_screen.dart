@@ -219,6 +219,18 @@ class _ServiceProviderServicesScreenState
     final amount = data['amount'] ?? 0.0;
     final imageUrl = data['imageUrl'] as String?;
 
+     return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ServiceProviderOrderDetailScreen(
+              bookingId: bookingId,
+            ),
+          ),
+        );
+      },
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
