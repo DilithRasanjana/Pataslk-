@@ -681,7 +681,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
   }
 
-  /// Approve job completion and mark status as completed in Firestore
+/// Approve job completion and mark status as completed in Firestore
   Future<void> _approveCompletion(String bookingId) async {
     try {
       // Mark that we're handling this approval explicitly
