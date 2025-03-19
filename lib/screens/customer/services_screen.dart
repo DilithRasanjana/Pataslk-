@@ -865,6 +865,53 @@ class _ServicesScreenState extends State<ServicesScreen> {
       );
     }
   }
+
+  /// Create a notification document in Firestore
+  Future<void> _createNotification({
+    required String title,
+    required String message,
+    required String bookingId,
+    required String type,
+  }) async {
+    if (_currentUser == null) return;
+    
+    try {
+      // Check if similar notification exists in the last 5 minutes
+      final recentNotifications = await FirebaseFirestore.instance
+          .collection('notifications')
+          .where('userId', isEqualTo: _currentUser!.uid)
+          .where('bookingId', isEqualTo: bookingId)
+          .where('type', isEqualTo: type)
+          .orderBy('createdAt', descending: true)
+          .limit(1)
+          .get();
+      
+      // If recent notification exists, don't create another one
+      if (recentNotifications.docs.isNotEmpty) {
+        final lastNotification = recentNotifications.docs.first;
+        final lastTimestamp = lastNotification['createdAt'] as Timestamp;
+        final timeDiff = DateTime.now().difference(lastTimestamp.toDate());
+        
+        // If similar notification was created in the last 5 minutes, skip
+        if (timeDiff.inMinutes < 5) {
+          return;
+        }
+      }
+      
+      // Add a new notification document to Firestore
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'userId': _currentUser!.uid,
+        'title': title,
+        'message': message,
+        'bookingId': bookingId,
+        'type': type,
+        'read': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('Error creating notification: $e');
+    }
+  }
   
   /// Listen for status changes in bookings and create notifications
   void _listenForStatusChanges(DocumentSnapshot doc) {
