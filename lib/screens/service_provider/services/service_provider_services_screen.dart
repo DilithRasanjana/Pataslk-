@@ -187,6 +187,34 @@ class _ServiceProviderServicesScreenState
     );
   }
 
+  Widget _buildBookingCard(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+
+    final bookingId = doc.id;
+    final serviceName = data['serviceName'] ?? 'Unknown';
+    final serviceType = data['serviceType'] ?? '';
+    final status = data['status'] ?? 'InProgress';
+    final bookingDateTs = data['bookingDate'] as Timestamp?;
+    final bookingDate =
+        bookingDateTs != null ? bookingDateTs.toDate() : DateTime.now();
+    final bookingTime = data['bookingTime'] ?? '';
+    
+    // Handle the location data which could be either a String or a Map
+    String locationDisplay = 'No location';
+    if (data['location'] != null) {
+      if (data['location'] is Map) {
+        // New format: location is a map with address key
+        final locationMap = data['location'] as Map<String, dynamic>;
+        locationDisplay = locationMap['address'] as String? ?? 'No location';
+      } else if (data['location'] is String) {
+        // Old format: location is directly a string
+        locationDisplay = data['location'] as String;
+      }
+    } else if (data['address'] != null && data['address'] is String) {
+      // Fallback to address field if it exists
+      locationDisplay = data['address'] as String;
+    }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
