@@ -44,6 +44,18 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
     super.dispose();
   }
 
+  // Extract district from address
+  String _extractDistrict(String address) {
+    final List<String> parts = address.split(',');
+    for (String part in parts) {
+      part = part.trim();
+      if (part.contains('District')) {
+        return part;
+      }
+    }
+    return 'District not specified';
+  }
+
   // Create booking in Firestore and return the doc ID
   Future<String?> _createBooking() async {
     try {
@@ -60,6 +72,9 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
       final docRef = bookingsRef.doc(); // Create Firestore document reference
       final referenceCode = docRef.id; // Use Firestore document ID as reference code
 
+      // Extract district from the selected address
+      String district = selectedAddress != null ? _extractDistrict(selectedAddress!) : 'District not specified';
+
       // Prepare data for Firestore document
       final bookingData = {
         'customer_id': currentUser.uid,  // Store Firebase user ID
@@ -74,9 +89,16 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
             selectedDate != null ? Timestamp.fromDate(selectedDate!) : null,  // Firebase Timestamp
         'bookingTime':
             selectedTime != null ? selectedTime!.format(context) : null,
-        'location': selectedAddress,
+        'location': {
+          'latitude': selectedLocation!.latitude,
+          'longitude': selectedLocation!.longitude,
+          'address': selectedAddress,
+        },
+        'address': selectedAddress,
+        'district': district,  // Add the district field
         'status': 'Pending',
         'createdAt': Timestamp.now(),  // Firebase server timestamp
+        'expiresAt': Timestamp.fromDate(DateTime.now().add(const Duration(hours: 24))), // Add this line
         'imageUrl': widget.uploadedImageUrl,  // Store the image URL in the booking document
       };
 
@@ -149,7 +171,15 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
     );
     if (result != null) {
       setState(() {
-        selectedLocation = result['coordinates'] as LatLng;
+        // Handle both formats: direct LatLng object or map with coordinates
+        if (result['coordinates'] is LatLng) {
+          selectedLocation = result['coordinates'] as LatLng;
+        } else if (result['latitude'] != null && result['longitude'] != null) {
+          selectedLocation = LatLng(
+            result['latitude'] as double, 
+            result['longitude'] as double
+          );
+        }
         selectedAddress = result['address'] as String;
       });
     }
