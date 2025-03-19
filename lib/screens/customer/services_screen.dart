@@ -541,6 +541,90 @@ class _ServicesScreenState extends State<ServicesScreen> {
     );
   }
 
+  /// Show confirmation dialog for canceling a booking
+  Future<void> _showCancelBookingDialog(String bookingId, String serviceName) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Booking?'),
+        content: Text('Are you sure you want to cancel your $serviceName booking? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No, Keep It'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Yes, Cancel', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+    
+    if (result == true) {
+      await _cancelBooking(bookingId, serviceName);
+    }
+  }
+  
+  /// Cancel and delete a booking from Firestore
+  Future<void> _cancelBooking(String bookingId, String serviceName) async {
+    try {
+      // Show loading indicator
+      final loadingDialog = showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+      
+      // Delete the booking
+      await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(bookingId)
+          .delete();
+      
+      // Create a notification about the cancellation
+      await _createNotification(
+        title: 'Booking Cancelled',
+        message: 'You have cancelled your $serviceName booking.',
+        bookingId: bookingId,
+        type: 'cancelled',
+      );
+      
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+        
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Your $serviceName booking has been cancelled.'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if still showing
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to cancel booking: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   /// Formats the booking date and time into a single string.
   String _formatSchedule(DateTime? date, String timeStr) {
     if (date == null) {
