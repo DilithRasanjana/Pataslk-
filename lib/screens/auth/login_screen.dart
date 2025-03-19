@@ -45,7 +45,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
     final validation = _validatePhone(_phoneController.text);
     if (validation != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(validation), backgroundColor: Colors.red),
+        SnackBar(content: Text(validation)),
       );
       return;
     }
@@ -57,28 +57,25 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
     });
 
     // Firebase Firestore: Check if a customer exists by phone number
-    try {
-      bool exists = await _firestoreHelper.doesCustomerExistByPhone(phone: fullPhone);
-      if (!exists) {
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("No customer found with this phone number. Please sign up."),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
-      }
-      
+    bool exists = await _firestoreHelper.doesCustomerExistByPhone(phone: fullPhone);
+    if (!exists) {
+      setState(() {
+        _isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Sending verification code..."),
-          duration: Duration(seconds: 2),
-        ),
+        const SnackBar(content: Text("No customer found with this phone number. Please sign up.")),
       );
+      return;
+    }
 
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("You'll receive an SMS with the verification code shortly."),
+        duration: Duration(seconds: 5),
+      ),
+    );
+
+    try {
       // Firebase Authentication: Start phone number verification process
       await _authHelper.verifyPhoneNumber(
         phoneNumber: fullPhone,
@@ -91,10 +88,10 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => CustomerVerificationScreen(
-                verificationId: verificationId,
+                verificationId: verificationId,  // Firebase verification ID for SMS authentication
                 isSignUpFlow: false,
                 phone: fullPhone,
-                resendToken: forceResendingToken,
+                resendToken: forceResendingToken,  // Firebase token for resending verification code
               ),
             ),
           );
@@ -106,22 +103,17 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
             _isLoading = false;
           });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(error),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(error)),
           );
         },
       );
     } catch (e) {
+      // Handle Firebase Authentication exceptions
       setState(() {
         _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Authentication error: $e"),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text("Authentication error: $e")),
       );
     }
   }
