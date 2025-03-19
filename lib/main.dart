@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/scheduler.dart'; // Add this import
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
-import 'package:flutter/foundation.dart';
 import 'screens/auth/user_type_screen.dart';
+import 'screens/service_provider/home/service_provider_home_screen.dart';
+import 'screens/customer/home/home_screen.dart';
+import 'utils/firebase_auth_helper.dart';
+import 'utils/firebase_firestore_helper.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -44,7 +48,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0D47A1)),
         useMaterial3: true,
       ),
-      home: const SplashScreen(),
+      home: const SafeStartupScreen(),
     );
   }
 }
@@ -55,6 +59,43 @@ class SafeStartupScreen extends StatefulWidget {
 
   @override
   State<SafeStartupScreen> createState() => _SafeStartupScreenState();
+}
+
+class _SafeStartupScreenState extends State<SafeStartupScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Use a post-frame callback to avoid navigation during build
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _safeNavigate();
+    });
+  }
+  
+  Future<void> _safeNavigate() async {
+    if (!mounted) return;
+    
+    // Navigate to authentication check screen
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const AuthCheckScreen()),
+    );
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    // Simple loading screen with no navigation logic in build method
+    return const Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
+}
+
+class AuthCheckScreen extends StatefulWidget {
+  const AuthCheckScreen({super.key});
+
+  @override
+  State<AuthCheckScreen> createState() => _AuthCheckScreenState();
 }
 
 class _AuthCheckScreenState extends State<AuthCheckScreen> {
@@ -129,27 +170,16 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
     }
   }
   
-  
-
-class _SafeStartupScreenState extends State<SafeStartupScreen> {
   @override
-  void initState() {
-    super.initState();
-    // Use a post-frame callback to avoid navigation during build
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      _safeNavigate();
-    });
-  }
-  
-  Future<void> _safeNavigate() async {
-    if (!mounted) return;
-    
-    // Navigate to authentication check screen
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const AuthCheckScreen()),
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
     );
   }
-  
+}
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
   
@@ -158,17 +188,27 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool _navigating = false;
+  
   @override
   void initState() {
     super.initState();
-    // Navigate to the user type screen after 3 seconds.
+    // Navigate to the user type screen after 3 seconds, but prevent multiple navigations
     Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const UserTypeScreen()),
-        );
-      }
+      _safeNavigateToUserType();
     });
+  }
+  
+  void _safeNavigateToUserType() {
+    if (mounted && !_navigating) {
+      setState(() {
+        _navigating = true;
+      });
+      
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const UserTypeScreen()),
+      );
+    }
   }
   
   @override

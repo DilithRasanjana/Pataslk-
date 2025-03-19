@@ -2,9 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:latlong2/latlong.dart'; // Add this import
+import 'package:latlong2/latlong.dart'; 
+import 'package:url_launcher/url_launcher.dart'; 
 import '../home/service_provider_home_screen.dart';
-import 'booking_location_map_screen.dart'; // Add this import
+import 'booking_location_map_screen.dart'; 
 
 class ServiceProviderOrderDetailScreen extends StatefulWidget {
   final String bookingId;
@@ -23,6 +24,7 @@ class _ServiceProviderOrderDetailScreenState
   final User? _currentUser = FirebaseAuth.instance.currentUser;
   DocumentSnapshot? _bookingDoc;
   bool _isLoading = false;
+  String? _customerPhone;
 
   @override
   void initState() {
@@ -41,6 +43,7 @@ class _ServiceProviderOrderDetailScreenState
           .get();
       if (doc.exists) {
         setState(() => _bookingDoc = doc);
+        await _fetchCustomerPhone();
       }
     } catch (e) {
       print('Error fetching booking: $e');
@@ -49,10 +52,82 @@ class _ServiceProviderOrderDetailScreenState
     }
   }
 
+  /// Fetch the customer's phone number using the customer_id from the booking
+  Future<void> _fetchCustomerPhone() async {
+    if (_bookingDoc == null) return;
+
+    try {
+      final data = _bookingDoc!.data() as Map<String, dynamic>;
+      final customerId = data['customer_id'];
+
+      if (customerId != null) {
+        final customerDoc = await FirebaseFirestore.instance
+            .collection('customers')
+            .doc(customerId)
+            .get();
+
+        if (customerDoc.exists) {
+          final customerData = customerDoc.data() as Map<String, dynamic>;
+          setState(() {
+            _customerPhone = customerData['phone'] as String?;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching customer phone: $e');
+    }
+  }
+
+  /// Make a phone call to the customer
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not launch phone dialer'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   // Navigate to the location map screen
   void _viewLocationOnMap(Map<String, dynamic> data) {
+    // Extract coordinates for the map view
+    double? latitude;
+    double? longitude;
+    String locationDisplay = 'Unknown location';
+
+    if (data['location'] is Map) {
+      final locationMap = data['location'] as Map<String, dynamic>;
+      latitude = locationMap['latitude'] is num
+          ? (locationMap['latitude'] as num).toDouble()
+          : null;
+      longitude = locationMap['longitude'] is num
+          ? (locationMap['longitude'] as num).toDouble()
+          : null;
+      locationDisplay =
+          locationMap['address'] as String? ?? 'Unknown location';
+    } else {
+      // Try the direct latitude/longitude fields as fallback
+      latitude = data['latitude'] is num
+          ? (data['latitude'] as num).toDouble()
+          : null;
+      longitude = data['longitude'] is num
+          ? (data['longitude'] as num).toDouble()
+          : null;
+
+      if (data['address'] != null && data['address'] is String) {
+        locationDisplay = data['address'] as String;
+      } else if (data['location'] is String) {
+        locationDisplay = data['location'] as String;
+      }
+    }
+
     // Check if we have location data
-    if (data['latitude'] == null || data['longitude'] == null) {
+    if (latitude == null || longitude == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Location coordinates not available for this booking'),
@@ -63,16 +138,15 @@ class _ServiceProviderOrderDetailScreenState
     }
 
     // Create a LatLng object from the booking data
-    final location = LatLng(data['latitude'], data['longitude']);
-    final address = data['location'] ?? 'Unknown location';
+    final location = LatLng(latitude, longitude);
     final customerName = data['customerName'] ?? 'Customer';
 
     Navigator.push(
-      context, 
+      context,
       MaterialPageRoute(
         builder: (context) => BookingLocationMapScreen(
           location: location,
-          address: address,
+          address: locationDisplay,
           bookingId: widget.bookingId,
           customerName: customerName,
         ),
@@ -217,12 +291,51 @@ class _ServiceProviderOrderDetailScreenState
     final bookingDate = bookingDateTs != null
         ? '${bookingDateTs.toDate().day}-${bookingDateTs.toDate().month}-${bookingDateTs.toDate().year}'
         : 'N/A';
-    final location = data['location'] ?? 'Unknown location';
+
+    // Handle the location data which could be either a String or a Map
+    String locationDisplay = 'Unknown location';
+    if (data['location'] != null) {
+      if (data['location'] is Map) {
+        // New format: location is a map with address key
+        final locationMap = data['location'] as Map<String, dynamic>;
+        locationDisplay =
+            locationMap['address'] as String? ?? 'Unknown location';
+      } else if (data['location'] is String) {
+        // Old format: location is directly a string
+        locationDisplay = data['location'] as String;
+      }
+    } else if (data['address'] != null && data['address'] is String) {
+      // Fallback to address field if it exists
+      locationDisplay = data['address'] as String;
+    }
+
     final description = data['description'] ?? 'No description';
     final imageUrl = data['imageUrl'] as String?; // Get the image URL
 
+    // Extract coordinates for the map view
+    double? latitude;
+    double? longitude;
+
+    if (data['location'] is Map) {
+      final locationMap = data['location'] as Map<String, dynamic>;
+      latitude = locationMap['latitude'] is num
+          ? (locationMap['latitude'] as num).toDouble()
+          : null;
+      longitude = locationMap['longitude'] is num
+          ? (locationMap['longitude'] as num).toDouble()
+          : null;
+    } else {
+      // Try the direct latitude/longitude fields as fallback
+      latitude = data['latitude'] is num
+          ? (data['latitude'] as num).toDouble()
+          : null;
+      longitude = data['longitude'] is num
+          ? (data['longitude'] as num).toDouble()
+          : null;
+    }
+
     // Check if location coordinates are available for the map button
-    final bool hasLocationData = data['latitude'] != null && data['longitude'] != null;
+    final bool hasLocationData = latitude != null && longitude != null;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -268,7 +381,7 @@ class _ServiceProviderOrderDetailScreenState
                   ),
                 ),
               ),
-            
+
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -319,6 +432,52 @@ class _ServiceProviderOrderDetailScreenState
                     ],
                   ),
                   const SizedBox(height: 24),
+                  // Add Phone Number section with Call button
+                  if (_customerPhone != null) ...[
+                    const SizedBox(height: 24),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Customer Contact',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.white,
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.phone, color: Colors.green),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _customerPhone!,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: () => _makePhoneCall(_customerPhone!),
+                                icon: const Icon(Icons.call, size: 16),
+                                label: const Text('Call'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  foregroundColor: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   // Location with View on Map button
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,7 +488,7 @@ class _ServiceProviderOrderDetailScreenState
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      
+
                       // Location display card
                       Container(
                         padding: const EdgeInsets.all(12),
@@ -349,7 +508,7 @@ class _ServiceProviderOrderDetailScreenState
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    location,
+                                    locationDisplay, // Use locationDisplay instead of data['location']
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: Colors.grey[700],
@@ -358,18 +517,18 @@ class _ServiceProviderOrderDetailScreenState
                                 ),
                               ],
                             ),
-                            
+
                             const SizedBox(height: 12),
-                            
+
                             // View on Map button
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton.icon(
                                 icon: const Icon(Icons.map),
                                 label: const Text('View Location on Map'),
-                                onPressed: hasLocationData 
-                                  ? () => _viewLocationOnMap(data)
-                                  : null,
+                                onPressed: hasLocationData
+                                    ? () => _viewLocationOnMap(data)
+                                    : null,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.blue[700],
                                   foregroundColor: Colors.white,
@@ -378,7 +537,7 @@ class _ServiceProviderOrderDetailScreenState
                                 ),
                               ),
                             ),
-                            
+
                             // Show warning if no coordinates
                             if (!hasLocationData)
                               Container(
@@ -407,7 +566,7 @@ class _ServiceProviderOrderDetailScreenState
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 32),
                   // Job Description
                   const Text(

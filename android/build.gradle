@@ -1,4 +1,9 @@
 buildscript {
+    ext {
+        compileSdkVersion = 33
+        targetSdkVersion = 33
+    }
+    // Kotlin version to the latest stable version and to match the settings.gradle declaration
     ext.kotlin_version = '1.7.10'
     repositories {
         google()
@@ -6,8 +11,11 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.1'
+        // Update to latest versions for better Firebase Phone Auth support
+        classpath 'com.android.tools.build:gradle:7.3.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        // Added Firebase Google Services plugin dependency
+        classpath 'com.google.gms:google-services:4.3.15'
     }
 }
 
