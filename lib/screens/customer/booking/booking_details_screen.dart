@@ -78,8 +78,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
       // Prepare data for Firestore document
       final bookingData = {
         'customer_id': currentUser.uid,  // Store Firebase user ID
-        'provider_id': null, // set later by the service provider
-        'providerName': '',  // set later by the service provider
+        'provider_id': null, 
+        'providerName': '',  
         'referenceCode': referenceCode,
         'serviceName': widget.serviceName,
         'serviceType': widget.serviceType,
