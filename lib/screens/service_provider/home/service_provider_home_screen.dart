@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart'; // Add this import
+import 'package:cached_network_image/cached_network_image.dart'; 
 import '../../../utils/firebase_firestore_helper.dart';
 import 'service_provider_menu_screen.dart';
 import 'service_provider_notification_screen.dart';
 import '../services/service_provider_services_screen.dart';
 import '../services/service_provider_order_detail_screen.dart';
-import '../profile/service_provider_profile_screen.dart'; // Add this import
+import '../profile/service_provider_profile_screen.dart'; 
 
 class ServiceProviderHomeScreen extends StatefulWidget {
   const ServiceProviderHomeScreen({Key? key}) : super(key: key);
@@ -18,7 +18,7 @@ class ServiceProviderHomeScreen extends StatefulWidget {
 }
 
 class _ServiceProviderHomeScreenState extends State<ServiceProviderHomeScreen> {
-  // Firebase Auth reference to get current user
+  
   final User? _currentUser = FirebaseAuth.instance.currentUser;
   final FirestoreHelper _firestoreHelper = FirestoreHelper();
   int _selectedIndex = 0;
@@ -73,6 +73,7 @@ class _ServiceProviderHomeScreenState extends State<ServiceProviderHomeScreen> {
         final firstName = userData['firstName'] ?? 'Worker';
         final jobRole = userData['jobRole'] ?? 'Unknown Role';
         final profileImageUrl = userData['profileImageUrl']; // Get profile image URL
+        final providerDistrict = userData['district']; // Get provider's district
 
         return Scaffold(
           backgroundColor: Colors.grey[50],
@@ -139,22 +140,32 @@ class _ServiceProviderHomeScreenState extends State<ServiceProviderHomeScreen> {
               children: [
                 // Greeting / Banner
                 _buildBannerSection(firstName),
-                // Now build the "Pending" jobs that match the provider's job role
+                
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Pending Bookings for $jobRole',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pending Bookings for $jobRole',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
+                      if (providerDistrict != null && providerDistrict.isNotEmpty)
+                        Text(
+                          'Location: $providerDistrict',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildBookingsList(jobRole),
+                _buildBookingsList(jobRole, providerDistrict),
               ],
             ),
           ),
@@ -213,14 +224,54 @@ class _ServiceProviderHomeScreenState extends State<ServiceProviderHomeScreen> {
     );
   }
 
-  /// Builds a list of "Pending" bookings matching the provider's jobRole.
-  Widget _buildBookingsList(String jobRole) {
-    // Firebase Firestore query for filtered bookings with real-time updates
+  /// Builds a list of "Pending" bookings matching the provider's jobRole and district.
+  Widget _buildBookingsList(String jobRole, String? providerDistrict) {
+    // If provider hasn't set their district yet, show a message to update profile
+    if (providerDistrict == null || providerDistrict.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Container(
+          height: 200,
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Please set your service location in your profile',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ServiceProviderProfileScreen(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue[900],
+                ),
+                child: const Text('Update Profile'),
+              )
+            ],
+          ),
+        ),
+      );
+    }
+    
+    
+    
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('bookings')
           .where('serviceName', isEqualTo: jobRole)
           .where('status', isEqualTo: 'Pending')
+          .where('district', isEqualTo: providerDistrict)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
@@ -235,7 +286,7 @@ class _ServiceProviderHomeScreenState extends State<ServiceProviderHomeScreen> {
               height: 200,
               alignment: Alignment.center,
               child: Text(
-                'No Pending Bookings for $jobRole',
+                'No Pending Bookings for $jobRole in $providerDistrict',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.grey[600],
@@ -271,7 +322,23 @@ class _ServiceProviderHomeScreenState extends State<ServiceProviderHomeScreen> {
         bookingDateTs != null ? bookingDateTs.toDate() : DateTime.now();
     final bookingTime = data['bookingTime'] ?? '';
     final description = data['description'] ?? 'No description';
-    final location = data['location'] ?? 'Unknown location';
+    
+    // Handle the location data which could be either a String or a Map
+    String locationDisplay = 'Unknown location';
+    if (data['location'] != null) {
+      if (data['location'] is Map) {
+        // New format: location is a map with address key
+        final locationMap = data['location'] as Map<String, dynamic>;
+        locationDisplay = locationMap['address'] as String? ?? 'Unknown location';
+      } else if (data['location'] is String) {
+        // Old format: location is directly a string
+        locationDisplay = data['location'] as String;
+      }
+    } else if (data['address'] != null && data['address'] is String) {
+      // Fallback to address field if it exists and is a string
+      locationDisplay = data['address'] as String;
+    }
+
     final imageUrl = data['imageUrl'] as String?; // Get image URL from document
 
     return Padding(
@@ -354,7 +421,7 @@ class _ServiceProviderHomeScreenState extends State<ServiceProviderHomeScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          location,
+                          locationDisplay, // Use the new variable here
                           style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
