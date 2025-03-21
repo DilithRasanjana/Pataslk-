@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-// Firebase imports for Firestore database access
 import 'package:cloud_firestore/cloud_firestore.dart';
-// Firebase Authentication import for user management
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../services_screen.dart';
@@ -15,13 +13,11 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
-  // Firebase Auth instance for user authentication
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String _sortBy = 'recent';
 
   @override
   Widget build(BuildContext context) {
-    // Get current authenticated Firebase user
     final User? currentUser = _auth.currentUser;
     
     if (currentUser == null) {
@@ -86,7 +82,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        // Firebase Firestore query to get user-specific notifications with ordering
         stream: FirebaseFirestore.instance
             .collection('notifications')
             .where('userId', isEqualTo: currentUser.uid)
@@ -101,10 +96,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
           
-          // Access Firebase documents from snapshot
           final notifications = snapshot.data?.docs ?? [];
           
-          // Mark all unread notifications as read in Firestore
           _markNotificationsAsRead(notifications);
           
           if (notifications.isEmpty) {
@@ -115,7 +108,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
             itemCount: notifications.length,
             padding: const EdgeInsets.all(12),
             itemBuilder: (context, index) {
-              // Extract Firebase document data
               final notification = notifications[index].data() as Map<String, dynamic>;
               return _buildNotificationCard(
                 notification: notification,
@@ -132,7 +124,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
     required Map<String, dynamic> notification, 
     required String notificationId
   }) {
-    // Convert Firebase Timestamp to Dart DateTime
     final DateTime createdAt = (notification['createdAt'] as Timestamp).toDate();
     final String formattedTime = DateFormat('dd MMM, hh:mm a').format(createdAt);
     final String title = notification['title'] ?? 'Notification';
@@ -140,7 +131,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
     final String type = notification['type'] ?? 'general';
     final String? bookingId = notification['bookingId'];
     
-    // Choose icon based on notification type
     IconData notificationIcon;
     Color iconColor;
     
@@ -270,24 +260,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
   
-  // Update multiple Firebase documents in a single batch operation
   Future<void> _markNotificationsAsRead(List<QueryDocumentSnapshot> notifications) async {
-    // Create a Firestore batch to handle multiple updates atomically
     final batch = FirebaseFirestore.instance.batch();
     
     for (final doc in notifications) {
       final notificationData = doc.data() as Map<String, dynamic>;
       if (notificationData['read'] != true) {
-        // Add document update operation to batch
         batch.update(doc.reference, {'read': true});
       }
     }
     
-    // Commit all updates in a single batch write
     await batch.commit();
   }
   
-  // Delete notification document from Firestore
   Future<void> _deleteNotification(String notificationId) async {
     await FirebaseFirestore.instance
         .collection('notifications')
@@ -295,23 +280,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
         .delete();
   }
   
-  // Fetch booking details from Firestore and navigate to details screen
   void _navigateToBookingDetails(String bookingId) async {
     try {
-      // Get specific booking document by ID from Firestore
       final bookingDoc = await FirebaseFirestore.instance
           .collection('bookings')
           .doc(bookingId)
           .get();
           
       if (bookingDoc.exists && context.mounted) {
-        // Extract data from Firebase document
         final data = bookingDoc.data() as Map<String, dynamic>;
         
-        // Get necessary booking details from Firebase document
         final serviceName = data['serviceName'] ?? 'Unknown Service';
         final serviceType = data['serviceType'] ?? '';
-        // Convert Firebase Timestamp to DateTime
         final bookingDateTs = data['bookingDate'] as Timestamp?;
         final bookingDate = bookingDateTs != null ? bookingDateTs.toDate() : null;
         final bookingTimeStr = data['bookingTime'] as String?;
@@ -320,8 +300,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         final imageUrl = data['imageUrl'] as String?;
         
         if (bookingDate != null && bookingTimeStr != null) {
-          // Parse time from string
-          final timeString = bookingTimeStr.split(' ')[0]; // e.g., "10:30" from "10:30 AM"
+          final timeString = bookingTimeStr.split(' ')[0];
           final timeParts = timeString.split(':');
           final hour = int.tryParse(timeParts[0]) ?? 0;
           final minute = int.tryParse(timeParts[1]) ?? 0;
