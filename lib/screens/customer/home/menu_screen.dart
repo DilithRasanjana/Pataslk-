@@ -1,6 +1,6 @@
-// Firebase Firestore package for database operations
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-// Firebase Authentication package for user authentication
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -12,16 +12,19 @@ import '../referral/refer_friend_screen.dart';
 import 'contact_us_screen.dart';
 import 'notification_screen.dart';
 import '../payment/payment_methods_screen.dart';
-// Helper utility for Firebase Firestore operations
+
 import '../../../utils/firebase_firestore_helper.dart';
+import '../../../utils/firebase_auth_helper.dart'; 
 
 class CustomerMenuScreen extends StatelessWidget {
   const CustomerMenuScreen({super.key});
 
-  // Firebase Firestore: Collection name for customers
+  //Collection name for customers
   final String _customersCollection = 'customers';
 
   Future<void> _showLogoutDialog(BuildContext context) {
+    final FirebaseAuthHelper authHelper = FirebaseAuthHelper(); // Create instance
+    
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -54,13 +57,17 @@ class CustomerMenuScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () {
-                    // Firebase Authentication: Sign out the user
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => const UserTypeScreen()),
-                      (route) => false,
-                    );
+                  onPressed: () async {
+                    // Sign out the user first, then navigate
+                    await authHelper.signOut();
+                    
+                    if (context.mounted) {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => const UserTypeScreen()),
+                        (route) => false,
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0D47A1),
@@ -102,9 +109,9 @@ class CustomerMenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Firebase Authentication: Get the current user
+    
     final User? currentUser = FirebaseAuth.instance.currentUser;
-    // Firebase Firestore: Helper for database operations
+    
     final FirestoreHelper firestoreHelper = FirestoreHelper();
 
     return Scaffold(
