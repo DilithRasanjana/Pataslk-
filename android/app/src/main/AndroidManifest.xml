@@ -52,7 +52,7 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <!-- Use your package name as the scheme and a custom host (e.g., firebaseauth) -->
+                
                 <data android:scheme="com.example.pataslk" android:host="firebaseauth" />
             </intent-filter>
 
@@ -77,7 +77,7 @@
             android:name="com.google.android.safetynet.ATTEST_API_KEY"
             android:value="debug-safetynet-placeholder-only-for-testing" />
             
-        <!-- Add this meta-data tag for reCAPTCHA verification -->
+        
         <meta-data
             android:name="com.google.android.gms.vision.DEPENDENCIES"
             android:value="barcode" />
