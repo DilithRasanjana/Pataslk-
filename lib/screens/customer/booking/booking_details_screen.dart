@@ -446,7 +446,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                   ),
                   const SizedBox(height: 16),
                   
-                  // "Add Payment Method" button
+                  
                   ElevatedButton(
                     onPressed: _addPaymentMethod,
                     style: ElevatedButton.styleFrom(
