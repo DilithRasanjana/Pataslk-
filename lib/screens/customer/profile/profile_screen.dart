@@ -1,12 +1,12 @@
 import 'dart:io';
-// Firebase Firestore for database operations
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-// Firebase Authentication for user management
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'edit_photo_screen.dart'; // Ensure you have an edit photo screen implemented
+import 'edit_photo_screen.dart'; 
 // Firebase Firestore and Storage helper utilities
 import '../../../utils/firebase_firestore_helper.dart';
 import '../../../utils/firebase_storage_helper.dart';
@@ -33,11 +33,11 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   final List<String> _genders = ['Male', 'Female'];
 
   bool _isLoading = true;
-  // Firebase Authentication instance
+  
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  // Firebase Firestore helper for database operations
+  
   final FirestoreHelper _firestoreHelper = FirestoreHelper();
-  // Firebase Storage helper for file operations
+  
   final FirebaseStorageHelper _storageHelper = FirebaseStorageHelper();
 
   @override
@@ -173,7 +173,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
     });
   }
 
-  /// Saves (or updates) the profile to Firestore.
+  /// Saves or updates the profile to Firestore.
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
