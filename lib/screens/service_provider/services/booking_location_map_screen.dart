@@ -68,8 +68,8 @@ class BookingLocationMapScreen extends StatefulWidget {
       print('Error extracting location: $e');
       location = LatLng(7.8731, 80.7718); // Default on error
     }
-
-     // Extract address safely
+    
+    // Extract address safely
     final String address = bookingData['address'] as String? ?? 
                          (bookingData['location'] is Map ? 
                            bookingData['location']['address'] as String? : null) ?? 
@@ -88,7 +88,7 @@ class BookingLocationMapScreen extends StatefulWidget {
       bookingId: bookingId,
       customerName: customerName,
     );
-  } 
+  }
 
   @override
   State<BookingLocationMapScreen> createState() => _BookingLocationMapScreenState();
@@ -115,4 +115,255 @@ class _BookingLocationMapScreenState extends State<BookingLocationMapScreen> {
       }
     }
   }
-    
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.blue[900],
+        title: const Text(
+          'Booking Location', 
+          style: TextStyle(color: Colors.white),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.my_location),
+            onPressed: () {
+              if (_mapReady) {
+                _mapController.move(widget.location, 16.0);
+              }
+            },
+            tooltip: 'Center on location',
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          // The map
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: widget.location,
+              initialZoom: 15.0,
+              minZoom: 4.0,
+              maxZoom: 18.0,
+              onMapReady: () {
+                setState(() => _mapReady = true);
+              },
+              // Use callback without type for position to avoid MapPosition dependency
+              onPositionChanged: (position, hasGesture) {
+                if (position.zoom != null) {
+                  setState(() {
+                    _currentZoom = position.zoom!;
+                  });
+                }
+              },
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.example.app',
+              ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: widget.location,
+                    width: 80,
+                    height: 80,
+                    child: Column(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                // Using withOpacity with a different approach
+                                color: Colors.black87,
+                                blurRadius: 6,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                          child: const Padding(
+                            padding: EdgeInsets.all(4.0),
+                            child: Icon(Icons.home_work, color: Colors.red, size: 26),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.arrow_drop_down,
+                          color: Colors.red,
+                          size: 32,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          
+          // Zoom controls
+          Positioned(
+            right: 16,
+            bottom: 180,
+            child: Column(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        // Using different approach without withOpacity
+                        color: Colors.grey.shade300,
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () {
+                          _mapController.move(
+                            _mapController.camera.center,
+                            _currentZoom + 1,
+                          );
+                        },
+                      ),
+                      Container(
+                        height: 1,
+                        width: 20,
+                        color: Colors.grey[300],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.remove),
+                        onPressed: () {
+                          _mapController.move(
+                            _mapController.camera.center,
+                            _currentZoom - 1,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Location information panel at the bottom
+          Positioned(
+            bottom: 16,
+            left: 16,
+            right: 16,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    // Using non-deprecated approach
+                    color: Colors.grey.shade300,
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.person_pin_circle, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Booking #${widget.bookingId.length >= 6 ? widget.bookingId.substring(0, 6) : widget.bookingId}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Customer: ${widget.customerName}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.location_on, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Address:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.address,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Coordinates: ${widget.location.latitude.toStringAsFixed(6)}, ${widget.location.longitude.toStringAsFixed(6)}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _openMapDirections,
+                          icon: const Icon(Icons.directions),
+                          label: const Text('Get Directions'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[900],
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
