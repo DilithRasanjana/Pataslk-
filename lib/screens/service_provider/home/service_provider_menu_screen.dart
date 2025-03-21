@@ -8,6 +8,7 @@ import 'service_provider_notification_screen.dart';
 import '../ratings/service_provider_rating_screen.dart';
 import 'service_provider_support_screen.dart';
 import '../../../utils/firebase_firestore_helper.dart';
+import '../../../utils/firebase_auth_helper.dart'; 
 import 'service_provider_home_screen.dart';
 
 class ServiceProviderMenuScreen extends StatelessWidget {
@@ -17,6 +18,8 @@ class ServiceProviderMenuScreen extends StatelessWidget {
   final String _providersCollection = 'serviceProviders';
 
   Future<void> _showLogoutDialog(BuildContext context) {
+    final FirebaseAuthHelper authHelper = FirebaseAuthHelper(); // Create instance
+    
     return showDialog(
       context: context,
       barrierDismissible: false,
@@ -52,12 +55,17 @@ class ServiceProviderMenuScreen extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => const UserTypeScreen()),
-                        (route) => false,
-                      );
+                    onPressed: () async {
+                      // Sign out the user first, then navigate
+                      await authHelper.signOut();
+                      
+                      if (context.mounted) {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => const UserTypeScreen()),
+                          (route) => false,
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0D47A1),
