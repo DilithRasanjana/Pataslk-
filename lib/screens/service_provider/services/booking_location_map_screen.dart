@@ -89,4 +89,30 @@ class BookingLocationMapScreen extends StatefulWidget {
       customerName: customerName,
     );
   } 
+
+  @override
+  State<BookingLocationMapScreen> createState() => _BookingLocationMapScreenState();
+}
+
+class _BookingLocationMapScreenState extends State<BookingLocationMapScreen> {
+  final MapController _mapController = MapController();
+  bool _mapReady = false;
+  double _currentZoom = 15.0;
+
+  // Helper function to open map directions
+  Future<void> _openMapDirections() async {
+    final String googleMapsUrl = 
+        'https://www.google.com/maps/dir/?api=1&destination=${widget.location.latitude},${widget.location.longitude}';
+    
+    final Uri uri = Uri.parse(googleMapsUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open maps app')),
+        );
+      }
+    }
+  }
     
