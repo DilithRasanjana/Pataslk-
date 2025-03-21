@@ -68,4 +68,25 @@ class BookingLocationMapScreen extends StatefulWidget {
       print('Error extracting location: $e');
       location = LatLng(7.8731, 80.7718); // Default on error
     }
+
+     // Extract address safely
+    final String address = bookingData['address'] as String? ?? 
+                         (bookingData['location'] is Map ? 
+                           bookingData['location']['address'] as String? : null) ?? 
+                         'Address not available';
+    
+    // Extract booking ID and customer name
+    final String bookingId = bookingData['bookingId'] as String? ?? 
+                           bookingData['referenceCode'] as String? ?? 
+                           'Unknown';
+    final String customerName = bookingData['customerName'] as String? ?? 'Customer';
+    
+    return BookingLocationMapScreen(
+      key: key,
+      location: location,
+      address: address,
+      bookingId: bookingId,
+      customerName: customerName,
+    );
+  } 
     
