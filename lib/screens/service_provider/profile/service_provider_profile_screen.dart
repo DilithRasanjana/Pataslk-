@@ -4,8 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../utils/firebase_firestore_helper.dart';
 import '../../../utils/firebase_storage_helper.dart';
+import '../../customer/location/location_picker_screen.dart';
 import 'service_provider_photo_upload_screen.dart';
 
 class ServiceProviderProfileScreen extends StatefulWidget {
@@ -25,6 +27,12 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
   String? _selectedJobRole;
   File? _profileImage;
   String? _profileImageUrl;
+  
+ 
+  LatLng? _selectedLocation;
+  String? _selectedAddress;
+  String? _selectedDistrict;
+  bool _locationUpdated = false;
 
   final List<String> _jobRoles = [
     'AC Repair',
@@ -39,11 +47,11 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
   ];
 
   bool _isLoading = true;
-  // Firebase Auth: Access to authentication services
+  
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  // Firebase Firestore: Helper for database operations
+  
   final FirestoreHelper _firestoreHelper = FirestoreHelper();
-  // Firebase Storage: Helper for file storage operations
+  
   final FirebaseStorageHelper _storageHelper = FirebaseStorageHelper();
 
   @override
@@ -52,12 +60,24 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
     _loadProfile();
   }
 
+  // Helper method to extract district from address
+  String _extractDistrict(String address) {
+    final List<String> parts = address.split(',');
+    for (String part in parts) {
+      part = part.trim();
+      if (part.contains('District')) {
+        return part;
+      }
+    }
+    return 'District not specified';
+  }
+
   /// Loads the current service provider's profile from Firestore.
   Future<void> _loadProfile() async {
-    // Firebase Auth: Get current user
+    
     User? user = _auth.currentUser;
     if (user != null) {
-      // Firebase Firestore: Get provider document from serviceProviders collection
+      // Get provider document from serviceProviders collection
       DocumentSnapshot doc = await _firestoreHelper
           .getUserStream(collection: 'serviceProviders', uid: user.uid)
           .first;
@@ -73,6 +93,20 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
         _emailController.text = data['email'] ?? '';
         _selectedJobRole = data['jobRole'];
         
+        // Load location data if stored
+        if (data['location'] != null) {
+          _selectedAddress = data['location'];
+          _selectedDistrict = data['district'];
+          
+          // If coordinates are stored, retrieve them
+          if (data['latitude'] != null && data['longitude'] != null) {
+            _selectedLocation = LatLng(
+              data['latitude'],
+              data['longitude']
+            );
+          }
+        }
+        
         // Load profile image URL if stored
         setState(() {
           _profileImageUrl = data['profileImageUrl'];
@@ -82,6 +116,30 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
     setState(() {
       _isLoading = false;
     });
+  }
+
+  /// Select location using the LocationPickerScreen
+  Future<void> _selectLocation() async {
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(builder: (context) => const LocationPickerScreen()),
+    );
+    
+    if (result != null) {
+      setState(() {
+        _selectedLocation = result['coordinates'] as LatLng;
+        _selectedAddress = result['address'] as String;
+        _selectedDistrict = _extractDistrict(_selectedAddress!);
+        _locationUpdated = true;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Location selected successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   /// Updates the profile image by navigating to the photo upload screen
@@ -111,7 +169,7 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
       _isLoading = true;
     });
     
-    // Firebase Auth: Get current user
+    
     User? user = _auth.currentUser;
     if (user != null) {
       // Firebase Storage: Delete old image if exists
@@ -169,6 +227,17 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
       // Firebase Auth: Get current user
       User? user = _auth.currentUser;
       if (user != null) {
+        // Prepare location data
+        Map<String, dynamic> locationData = {};
+        if (_selectedLocation != null) {
+          locationData = {
+            'location': _selectedAddress,
+            'district': _selectedDistrict, 
+            'latitude': _selectedLocation!.latitude,
+            'longitude': _selectedLocation!.longitude,
+          };
+        }
+        
         // Firebase Firestore: Update user profile data
         await _firestoreHelper.saveUserData(
           collection: 'serviceProviders',
@@ -181,6 +250,7 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
             'jobRole': _selectedJobRole,
             'userType': 'serviceProvider',
             'updatedAt': Timestamp.now(), // Firebase server timestamp
+            ...locationData, // Add location data if available
           },
         );
         ScaffoldMessenger.of(context).showSnackBar(
@@ -200,6 +270,7 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
       
       setState(() {
         _isLoading = false;
+        _locationUpdated = false;
       });
     }
   }
@@ -242,6 +313,134 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
           }
           return null;
         },
+      ),
+    );
+  }
+
+  /// Builds a location field with map preview.
+  Widget _buildLocationField() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Location selection button
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _selectLocation,
+                    icon: const Icon(Icons.location_on),
+                    label: Text(
+                      _selectedAddress == null ? 'Select Service Location' : 'Change Location',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0D47A1),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Show selected location details
+          if (_selectedAddress != null)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 16.0, left: 16.0, right: 16.0),
+              padding: const EdgeInsets.all(12.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: _locationUpdated ? Colors.green : Colors.grey.shade300,
+                  width: _locationUpdated ? 2.0 : 1.0,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // District badge - important for service providers
+                  if (_selectedDistrict != null && _selectedDistrict!.isNotEmpty)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade100,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        'District: $_selectedDistrict',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
+                    ),
+                  
+                  // Full address
+                  const Text(
+                    'Service Area:',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _selectedAddress!,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  
+                  // Coordinates
+                  if (_selectedLocation != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'Coordinates: ${_selectedLocation!.latitude.toStringAsFixed(4)}, ${_selectedLocation!.longitude.toStringAsFixed(4)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+
+                  
+                  if (_locationUpdated)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.check_circle, color: Colors.green.shade600, size: 16),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Location updated - Save profile to apply changes',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.green.shade600,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -398,6 +597,12 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
                             ),
                           ),
                           
+                          
+                          _buildProfileField(
+                            'Service Location',
+                            _buildLocationField(),
+                          ),
+                          
                           const SizedBox(height: 24),
                           // Save Button
                           SizedBox(
@@ -411,9 +616,9 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              child: const Text(
-                                'Save',
-                                style: TextStyle(
+                              child: Text(
+                                _locationUpdated ? 'Save Profile with New Location' : 'Save Profile',
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -421,6 +626,33 @@ class _ServiceProviderProfileScreenState extends State<ServiceProviderProfileScr
                               ),
                             ),
                           ),
+                          
+                          // Display warning if no location is set
+                          if (_selectedLocation == null)
+                            Container(
+                              margin: const EdgeInsets.only(top: 16),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.amber.shade200),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.warning, color: Colors.amber.shade800, size: 24),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'Setting your service location is required to receive job requests in your area.',
+                                      style: TextStyle(
+                                        color: Colors.amber.shade800,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                         ],
                       ),
                     ),
