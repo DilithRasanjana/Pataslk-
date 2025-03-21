@@ -1,6 +1,6 @@
-// Firebase Firestore package for database operations
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-// Firebase Authentication package for user authentication
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -9,9 +9,11 @@ import 'notification_screen.dart';
 import '../services/all_categories_screen.dart';
 import '../services/service_category_screen.dart';
 import '../services_screen.dart';
-import '../profile/profile_screen.dart'; // Add import for profile screen
-// Helper utility for Firebase Firestore operations
+import '../profile/profile_screen.dart'; 
+
 import '../../../utils/firebase_firestore_helper.dart';
+
+import '../../../utils/booking_expiry_checker.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,24 +23,30 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Firebase Firestore helper instance
+  
   final FirestoreHelper _firestoreHelper = FirestoreHelper();
-  // Firebase Authentication: Get current logged in user
+  
   final User? _currentUser = FirebaseAuth.instance.currentUser;
   int _selectedIndex = 0;
   int _unreadNotificationCount = 0;
-  // Firebase Firestore: Stream for real-time notification updates
+  //Stream for real-time notification updates
   Stream<QuerySnapshot>? _notificationStream;
+  final BookingExpiryChecker _expiryChecker = BookingExpiryChecker();
 
   @override
   void initState() {
     super.initState();
     _initNotificationStream();
+    _checkExpiredBookings();
+  }
+
+  Future<void> _checkExpiredBookings() async {
+    await _expiryChecker.checkExpiredBookings();
   }
 
   void _initNotificationStream() {
     if (_currentUser != null) {
-      // Firebase Firestore: Create real-time stream of unread notifications
+      //Create real-time stream of unread notifications
       _notificationStream = FirebaseFirestore.instance
           .collection('notifications')
           .where('userId', isEqualTo: _currentUser!.uid)
@@ -79,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
         body: Center(child: Text('No user logged in.')),
       );
     }
-    // Firebase Firestore: Stream user data for real-time updates
+    // Stream user data for real-time updates
     return StreamBuilder<DocumentSnapshot>(
       stream: _firestoreHelper.getUserStream(collection: 'customers', uid: _currentUser!.uid),
       builder: (context, snapshot) {
@@ -93,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
             body: Center(child: CircularProgressIndicator()),
           );
         }
-        // Firebase Firestore: Get user data from document snapshot
+        //Get user data from document snapshot
         var userData = snapshot.data!.data() as Map<String, dynamic>;
         var firstName = userData['firstName'] ?? 'User';
         String? profileImageUrl = userData['profileImageUrl'];
@@ -259,13 +267,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBottomNavigationBar() {
-    // Firebase Firestore: Stream notifications for real-time badge updates
+    // Stream notifications for real-time badge updates
     return StreamBuilder<QuerySnapshot>(
       stream: _notificationStream,
       builder: (context, snapshot) {
         int notificationCount = 0;
         if (snapshot.hasData && !snapshot.hasError) {
-          // Firebase Firestore: Count unread notifications
+          //Count unread notifications
           notificationCount = snapshot.data!.docs.length;
         }
 
