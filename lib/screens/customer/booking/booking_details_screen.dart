@@ -95,7 +95,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
           'address': selectedAddress,
         },
         'address': selectedAddress,
-        'district': district,  // Add the district field
+        'district': district,  
         'status': 'Pending',
         'createdAt': Timestamp.now(),  // Firebase server timestamp
         'expiresAt': Timestamp.fromDate(DateTime.now().add(const Duration(hours: 24))), // Add this line
@@ -212,6 +212,9 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
     });
     
     if (bookingId != null) {
+      // Check if widget is still mounted before navigating
+      if (!_isMounted) return;
+      
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -230,7 +233,8 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                     selectedDate: selectedDate!,
                     selectedTime: selectedTime!,
                     description: widget.description,
-                    uploadedImageUrl: widget.uploadedImageUrl, // Pass the image URL properly
+                    uploadedImageUrl: widget.uploadedImageUrl,
+                    status: 'Pending', 
                   ),
                 ),
               );
@@ -385,7 +389,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40), // Add space instead of spacer in SingleChildScrollView
+                  const SizedBox(height: 40), 
                   
                   // Amount + details
                   Container(
@@ -446,7 +450,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
                   ),
                   const SizedBox(height: 16),
                   
-                  
+                
                   ElevatedButton(
                     onPressed: _addPaymentMethod,
                     style: ElevatedButton.styleFrom(
