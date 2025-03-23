@@ -3,7 +3,7 @@ buildscript {
         compileSdkVersion = 33
         targetSdkVersion = 33
     }
-    // Kotlin version to the latest stable version and to match the settings.gradle declaration
+    // Updated Kotlin version to the latest stable version and to match the settings.gradle declaration
     ext.kotlin_version = '1.7.10'
     repositories {
         google()

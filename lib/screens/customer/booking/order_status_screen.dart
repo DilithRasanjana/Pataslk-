@@ -12,7 +12,8 @@ class OrderStatusScreen extends StatelessWidget {
   final TimeOfDay selectedTime;
   final String description;
   // Firebase Storage: URL of the image stored in Firebase Storage
-  final String? uploadedImageUrl; // Add parameter for image URL
+  final String? uploadedImageUrl;
+  final String status;
 
   const OrderStatusScreen({
     Key? key,
@@ -23,7 +24,8 @@ class OrderStatusScreen extends StatelessWidget {
     required this.selectedDate,
     required this.selectedTime,
     required this.description,
-    this.uploadedImageUrl, // Add the uploadedImageUrl parameter
+    this.uploadedImageUrl,
+    required this.status, 
   }) : super(key: key);
 
   String _extractDistrict(String address) {
@@ -35,6 +37,62 @@ class OrderStatusScreen extends StatelessWidget {
       }
     }
     return 'District not specified';
+  }
+
+  // Helper method to get status color
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Pending':
+        return Colors.orange;
+      case 'InProgress':
+        return Colors.blue;
+      case 'PendingApproval':
+        return Colors.amber;
+      case 'Completed':
+        return Colors.green;
+      case 'Incomplete':
+        return Colors.red;
+      case 'Expired':
+        return Colors.grey;
+      case 'Draft':
+        return Colors.grey;
+      default:
+        return Colors.orange;
+    }
+  }
+
+  // Helper method to get status display text
+  String _getStatusDisplayText(String status) {
+    switch (status) {
+      case 'InProgress':
+        return 'In Progress';
+      case 'PendingApproval':
+        return 'Pending Approval';
+      default:
+        return status;
+    }
+  }
+
+  // Helper method to get status description
+  String _getStatusDescription(String status) {
+    switch (status) {
+      case 'Pending':
+        return 'Your order is still pending. The service provider has not yet started the job.';
+      case 'InProgress':
+        return 'Your service is currently in progress. The service provider is working on your request.';
+      case 'PendingApproval':
+        return 'The service provider has marked this job as complete. Please review and approve the completion.';
+      case 'Completed':
+        return 'This service has been successfully completed and approved.';
+      case 'Incomplete':
+        return 'This service was marked as incomplete. You can contact customer support for assistance.';
+      case 'Expired':
+        return 'This booking has expired due to no response or activity.';
+      case 'Draft':
+        return 'This is a draft booking that has not been submitted yet.';
+      default:
+        return 'Status information unavailable.';
+    }
   }
 
   @override
@@ -58,7 +116,7 @@ class OrderStatusScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Status Section - displays the status from Firebase Firestore
+              // Status Section - Now using dynamic status
               Row(
                 children: [
                   const Text(
@@ -69,19 +127,19 @@ class OrderStatusScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.orange,
+                      color: _getStatusColor(status),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Text(
-                      'Pending', // This status would normally come from Firestore data
-                      style: TextStyle(color: Colors.white, fontSize: 14),
+                    child: Text(
+                      _getStatusDisplayText(status), // Use dynamic status
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
               Text(
-                'Your order is still pending. The service provider has not yet started the job.',
+                _getStatusDescription(status), // Use dynamic status description
                 style: TextStyle(color: Colors.grey[600], fontSize: 14),
               ),
               const SizedBox(height: 24),
@@ -125,7 +183,7 @@ class OrderStatusScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              // "Check Order Progress" Button navigates to the ServicesScreen.
+              
               Center(
                 child: ElevatedButton(
                   onPressed: () {

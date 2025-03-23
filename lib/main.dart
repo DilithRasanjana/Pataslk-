@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/scheduler.dart'; // Add this import
+import 'package:flutter/scheduler.dart'; 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'screens/auth/user_type_screen.dart';
@@ -9,6 +9,7 @@ import 'screens/customer/home/home_screen.dart';
 import 'utils/firebase_auth_helper.dart';
 import 'utils/firebase_firestore_helper.dart';
 import 'firebase_options.dart';
+import 'package:flutter/foundation.dart'; 
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +32,11 @@ Future<void> main() async {
     debugPrint('Firebase App Check activated with production providers');
   } catch (e) {
     debugPrint('Firebase initialization error: $e');
+  }
+
+  
+  if (kDebugMode) {
+    debugPrint('To connect DevTools, run: flutter devtools');
   }
 
   runApp(const MyApp());
@@ -101,7 +107,6 @@ class AuthCheckScreen extends StatefulWidget {
 class _AuthCheckScreenState extends State<AuthCheckScreen> {
   final FirebaseAuthHelper _authHelper = FirebaseAuthHelper();
   final FirestoreHelper _firestoreHelper = FirestoreHelper();
-  bool _isChecking = true;
   
   @override
   void initState() {
@@ -119,7 +124,7 @@ class _AuthCheckScreenState extends State<AuthCheckScreen> {
       if (_authHelper.isAuthenticated()) {
         final user = _authHelper.getCurrentUser();
         if (user != null) {
-          // Check if this user is a service provider
+      
           try {
             final serviceProviderDoc = await _firestoreHelper.getUserDocument(
               collection: 'serviceProviders', 
