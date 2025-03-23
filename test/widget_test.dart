@@ -7,7 +7,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:frontend/main.dart';
 
 void main() {
@@ -16,7 +15,6 @@ void main() {
     await tester.pumpWidget(const MyApp());
 
     // Verify that our counter starts at 0.
-    print(find.text('0').evaluate().toList()); // Debug print
     expect(find.text('0'), findsOneWidget);
     expect(find.text('1'), findsNothing);
 
@@ -25,7 +23,6 @@ void main() {
     await tester.pump();
 
     // Verify that our counter has incremented.
-    print(find.text('1').evaluate().toList()); // Debug print
     expect(find.text('0'), findsNothing);
     expect(find.text('1'), findsOneWidget);
   });
