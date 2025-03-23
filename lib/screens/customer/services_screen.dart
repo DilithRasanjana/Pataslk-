@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'booking/order_status_screen.dart';
-import 'home/home_screen.dart'; // Import HomeScreen
+import 'home/home_screen.dart'; 
 
 class ServicesScreen extends StatefulWidget {
   const ServicesScreen({Key? key}) : super(key: key);
@@ -323,303 +323,306 @@ class _ServicesScreenState extends State<ServicesScreen> {
     // Get the image URL if it exists
     final imageUrl = data['imageUrl'] as String?;
 
-    return GestureDetector(
-      onTap: () {
-        if (bookingDate != null && bookingTime != null) {
-          // Create a TimeOfDay from the bookingTime string
-          final timeString = bookingTime.split(' ')[0]; // e.g., "10:30" from "10:30 AM"
-          final timeParts = timeString.split(':');
-          final hour = int.tryParse(timeParts[0]) ?? 0;
-          final minute = int.tryParse(timeParts[1]) ?? 0;
-          final timeOfDay = TimeOfDay(hour: hour, minute: minute);
-          
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OrderStatusScreen(
-                bookingId: bookingId,
-                address: locationDisplay, // Use locationDisplay instead of data['location']
-                serviceType: serviceType,
-                jobRole: serviceName,
-                selectedDate: bookingDate,
-                selectedTime: timeOfDay,
-                description: description,
-                uploadedImageUrl: imageUrl,
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: () {
+          if (bookingDate != null && bookingTime != null) {
+            // Create a TimeOfDay from the bookingTime string
+            final timeString = bookingTime.split(' ')[0]; // e.g., "10:30" from "10:30 AM"
+            final timeParts = timeString.split(':');
+            final hour = int.tryParse(timeParts[0]) ?? 0;
+            final minute = int.tryParse(timeParts[1]) ?? 0;
+            final timeOfDay = TimeOfDay(hour: hour, minute: minute);
+            
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OrderStatusScreen(
+                  bookingId: bookingId,
+                  address: locationDisplay, // Use locationDisplay instead of data['location']
+                  serviceType: serviceType,
+                  jobRole: serviceName,
+                  selectedDate: bookingDate,
+                  selectedTime: timeOfDay,
+                  description: description,
+                  uploadedImageUrl: imageUrl,
+                  status: status, // Pass the current status
+                ),
               ),
-            ),
-          );
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 2,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Add image display if available
-              if (imageUrl != null && imageUrl.isNotEmpty)
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Center(
-                      child: SizedBox(
-                        height: 40,
-                        width: 40,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.0,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[300]!),
+            );
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            elevation: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Add image display if available
+                if (imageUrl != null && imageUrl.isNotEmpty)
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    child: CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Center(
+                        child: SizedBox(
+                          height: 40,
+                          width: 40,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.0,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[300]!),
+                          ),
                         ),
                       ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      height: 180,
-                      color: Colors.grey[200],
-                      child: const Center(
-                        child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
+                      errorWidget: (context, url, error) => Container(
+                        height: 180,
+                        color: Colors.grey[200],
+                        child: const Center(
+                          child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Service Name & Reference
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            serviceName,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Text(
-                          'Ref: #${bookingId.substring(0, 6)}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    
-                    // Show service type if available
-                    if (serviceType.isNotEmpty) ...[
-                      Text(
-                        serviceType,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                    
-                    // Status
-                    Row(
-                      children: [
-                        const Text(
-                          'Status',
-                          style: TextStyle(fontSize: 14, color: Colors.grey),
-                        ),
-                        const SizedBox(width: 8),
-                        _buildStatusBadge(status),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    // Date/Time
-                    Row(
-                      children: [
-                        const Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey),
-                        const SizedBox(width: 8),
-                        Text(
-                          scheduleText,
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    
-                    // Service Provider Info
-                    Row(
-                      children: [
-                        const Icon(Icons.bolt, color: Colors.blue, size: 16),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            providerName,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (status != 'PendingApproval')
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              // Show a snackbar for now
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Calling $providerName...'),
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.call, size: 16),
-                            label: const Text('Call'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue[100],
-                              foregroundColor: Colors.blue[900],
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                      ],
-                    ),
-                    
-                    // For Pending status, show cancel/delete button
-                    if (status == 'Pending') ...[
-                      const SizedBox(height: 16),
+                
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Service Name & Reference
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          ElevatedButton.icon(
-                            onPressed: () => _showCancelBookingDialog(bookingId, serviceName),
-                            icon: const Icon(Icons.delete, size: 16),
-                            label: const Text('Cancel Booking'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                          Expanded(
+                            child: Text(
+                              serviceName,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            'Ref: #${bookingId.substring(0, 6)}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
                             ),
                           ),
                         ],
                       ),
-                    ],
-                    
-                    // For PendingApproval status, show approve button and incomplete button
-                    if (status == 'PendingApproval') ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
+                      
+                      // Show service type if available
+                      if (serviceType.isNotEmpty) ...[
+                        Text(
+                          serviceType,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[700],
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      
+                      // Status
                       Row(
                         children: [
+                          const Text(
+                            'Status',
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildStatusBadge(status),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // Date/Time
+                      Row(
+                        children: [
+                          const Icon(Icons.calendar_today_outlined, size: 16, color: Colors.grey),
+                          const SizedBox(width: 8),
+                          Text(
+                            scheduleText,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Service Provider Info
+                      Row(
+                        children: [
+                          const Icon(Icons.bolt, color: Colors.blue, size: 16),
+                          const SizedBox(width: 8),
                           Expanded(
-                            child: ElevatedButton(
-                              onPressed: () => _approveCompletion(bookingId),
+                            child: Text(
+                              providerName,
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (status != 'PendingApproval')
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                // Show a snackbar for now
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Calling $providerName...'),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.call, size: 16),
+                              label: const Text('Call'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
+                                backgroundColor: Colors.blue[100],
+                                foregroundColor: Colors.blue[900],
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                        ],
+                      ),
+                      
+                      // For Pending status, show cancel/delete button
+                      if (status == 'Pending') ...[
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: () => _showCancelBookingDialog(bookingId, serviceName),
+                              icon: const Icon(Icons.delete, size: 16),
+                              label: const Text('Cancel Booking'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      
+                      // For PendingApproval status, show approve button and incomplete button
+                      if (status == 'PendingApproval') ...[
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () => _approveCompletion(bookingId),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Approve Completion',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Add Incomplete button
+                            ElevatedButton(
+                              onPressed: () => _markAsIncomplete(bookingId),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
                               child: const Text(
-                                'Approve Completion',
+                                'Incomplete',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          // Add Incomplete button
-                          ElevatedButton(
-                            onPressed: () => _markAsIncomplete(bookingId),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              'Incomplete',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Please approve if the job has been completed satisfactorily',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                          color: Colors.grey,
+                          ],
                         ),
-                      ),
-                    ],
-                    
-                    // For InProgress status, show incomplete button
-                    if (status == 'InProgress') ...[
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () => _markAsIncomplete(bookingId),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: const Text(
-                              'Mark as Incomplete',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Please approve if the job has been completed satisfactorily',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey,
                           ),
-                        ],
-                      ),
-                    ],
-                    
-                    // Show a snippet of description if available
-                    if (description.isNotEmpty && status != 'PendingApproval') ...[
-                      const SizedBox(height: 12),
-                      const Divider(),
-                      const SizedBox(height: 4),
-                      Text(
-                        description,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[800],
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      ],
+                      
+                      // For InProgress status, show incomplete button
+                      if (status == 'InProgress') ...[
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () => _markAsIncomplete(bookingId),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                'Mark as Incomplete',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      
+                      // Show a snippet of description if available
+                      if (description.isNotEmpty && status != 'PendingApproval') ...[
+                        const SizedBox(height: 12),
+                        const Divider(),
+                        const SizedBox(height: 4),
+                        Text(
+                          description,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[800],
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

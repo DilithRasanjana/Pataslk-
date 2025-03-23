@@ -2,10 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:latlong2/latlong.dart'; 
-import 'package:url_launcher/url_launcher.dart'; 
+import 'package:latlong2/latlong.dart'; // Add this import
+import 'package:url_launcher/url_launcher.dart'; // Add this import
 import '../home/service_provider_home_screen.dart';
-import 'booking_location_map_screen.dart'; 
+import 'booking_location_map_screen.dart'; // Add this import
 
 class ServiceProviderOrderDetailScreen extends StatefulWidget {
   final String bookingId;
@@ -169,6 +169,11 @@ class _ServiceProviderOrderDetailScreenState
           ? providerData['firstName'] ?? 'Unknown'
           : 'Unknown';
 
+      // Get booking data to retrieve customer information
+      final bookingData = _bookingDoc!.data() as Map<String, dynamic>;
+      final customerId = bookingData['customer_id'];
+      final serviceName = bookingData['serviceName'] ?? 'Unknown Service';
+
       // Firebase Firestore: Update booking document with provider information
       await FirebaseFirestore.instance
           .collection('bookings')
@@ -178,6 +183,19 @@ class _ServiceProviderOrderDetailScreenState
         'providerName': providerName,
         'status': 'InProgress',
       });
+
+      // Create notification for the customer
+      if (customerId != null) {
+        await FirebaseFirestore.instance.collection('notifications').add({
+          'userId': customerId,
+          'title': 'Service Request Accepted',
+          'message': '$providerName has accepted your $serviceName request and will start working on it.',
+          'bookingId': widget.bookingId,
+          'type': 'inProgress',
+          'read': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
 
       _showConfirmationDialog();
     } catch (e) {
