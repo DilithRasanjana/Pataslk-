@@ -34,7 +34,6 @@ Future<void> main() async {
     debugPrint('Firebase initialization error: $e');
   }
 
-  
   if (kDebugMode) {
     debugPrint('To connect DevTools, run: flutter devtools');
   }
