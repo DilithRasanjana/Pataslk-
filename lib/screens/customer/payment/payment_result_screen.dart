@@ -1,5 +1,5 @@
+// This file doesn't use Firebase directly - it's a UI component for displaying payment results
 import 'package:flutter/material.dart';
-import '../booking/order_status_screen.dart';
 
 class PaymentResultScreen extends StatelessWidget {
   final bool success;
@@ -22,7 +22,7 @@ class PaymentResultScreen extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Status Icon
+          // Icon container
           Container(
             width: 64,
             height: 64,
@@ -37,42 +37,35 @@ class PaymentResultScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Status Text
           Text(
-            success ? 'Payment Successful!' : 'Payment Failed!',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            success
+                ? 'Payment Method Added Successfully!'
+                : 'Payment Failed!',
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
             success
-                ? 'Thank you for choosing our services.\nYour booking has been confirmed!'
+                ? 'Your payment method has been added.'
                 : 'Please try again or contact support.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
           const SizedBox(height: 24),
-          // Done Button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pop(context); // Close bottom sheet
+                Navigator.pop(context); // Closes the bottom sheet
                 if (success && onSuccess != null) {
-                  onSuccess!(); // Call success callback
+                  onSuccess!();
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue[900],
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                    borderRadius: BorderRadius.circular(8)),
               ),
               child: const Text(
                 'DONE',

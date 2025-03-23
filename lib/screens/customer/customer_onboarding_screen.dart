@@ -88,7 +88,7 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
                 onPressed: () {
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
-                        builder: (context) => const LoginScreen()),
+                        builder: (context) => const CustomerLoginScreen()),
                   );
                 },
                 style: TextButton.styleFrom(
@@ -219,7 +219,7 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
                 onPressed: () {
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
-                        builder: (context) => const LoginScreen()),
+                        builder: (context) => const CustomerLoginScreen()),
                   );
                 },
                 style: TextButton.styleFrom(
@@ -363,7 +363,7 @@ class _CustomerOnboardingScreenState extends State<CustomerOnboardingScreen> {
             onPressed: () {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
-                  builder: (context) => const LoginScreen(),
+                  builder: (context) => const CustomerLoginScreen(),
                 ),
               );
             },

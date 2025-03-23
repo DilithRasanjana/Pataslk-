@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'add_photos_screen.dart';
 import '../booking/booking_details_screen.dart';
+// CachedNetworkImage used to display images from Firebase Storage
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ServiceDetailsScreen extends StatefulWidget {
   final String serviceName;
   final String serviceType;
 
   const ServiceDetailsScreen({
-    super.key,
+    Key? key,
     required this.serviceName,
     required this.serviceType,
-  });
+  }) : super(key: key);
 
   @override
   State<ServiceDetailsScreen> createState() => _ServiceDetailsScreenState();
@@ -18,8 +20,10 @@ class ServiceDetailsScreen extends StatefulWidget {
 
 class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
   final TextEditingController _descriptionController = TextEditingController();
-  bool _isDraft = false;
+  // URL from Firebase Storage after image upload
+  String? _uploadedImageUrl;
 
+  // Map each service to an image path
   String get _headerImage {
     switch (widget.serviceName) {
       case 'AC Repair':
@@ -41,6 +45,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
     }
   }
 
+  // Combined title for the service
   String get _serviceTitle {
     return '${widget.serviceName} ${widget.serviceType}';
   }
@@ -52,16 +57,15 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Top header image with overlay
             Stack(
               children: [
-                // Header Image
                 Container(
                   height: 300,
                   width: double.infinity,
                   decoration: BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage(
-                          _headerImage), // Changed from NetworkImage to AssetImage
+                      image: AssetImage(_headerImage),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -76,7 +80,6 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                     ),
                   ),
                 ),
-                // Back Button
                 Positioned(
                   top: 40,
                   left: 16,
@@ -85,7 +88,6 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ),
-                // Title
                 Positioned(
                   bottom: 20,
                   left: 16,
@@ -101,22 +103,36 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                 ),
               ],
             ),
+
+            // Main content
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Add Photos Button
+                  // "Add photos" button - navigates to screen that handles Firebase Storage upload
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      final result = await Navigator.push<String>(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => AddPhotosScreen(
-                            serviceName: widget.serviceName,
-                          ),
+                          builder: (context) =>
+                              AddPhotosScreen(serviceName: widget.serviceName),
                         ),
                       );
+                      
+                      if (result != null) {
+                        setState(() {
+                          // Store Firebase Storage URL of uploaded image
+                          _uploadedImageUrl = result;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Photo uploaded successfully'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFFE5D9),
@@ -141,8 +157,32 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                       ],
                     ),
                   ),
+                  
+                  // Show uploaded image from Firebase Storage if there is one
+                  if (_uploadedImageUrl != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      height: 150,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: CachedNetworkImage(
+                        imageUrl: _uploadedImageUrl!,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                        errorWidget: (context, url, error) => Center(
+                          child: Icon(Icons.error, color: Colors.red),
+                        ),
+                      ),
+                    ),
+                  ],
+                  
                   const SizedBox(height: 24),
-                  // Description Section
+
+                  // Description label
                   Row(
                     children: [
                       Container(
@@ -164,7 +204,8 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Description Text Editor
+
+                  // Description editor
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.grey[50],
@@ -226,7 +267,8 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Service Charge
+
+                  // Service charge (static)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -234,7 +276,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                         'Service charge:',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.grey,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       Row(
@@ -247,10 +289,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Icon(
-                            Icons.keyboard_arrow_up,
-                            color: Colors.orange[400],
-                          ),
+                          Icon(Icons.keyboard_arrow_up, color: Colors.orange[400]),
                           Text(
                             'Bill Details',
                             style: TextStyle(
@@ -263,67 +302,40 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Bottom Buttons
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () {
-                            setState(() => _isDraft = true);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Draft saved'),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                          },
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              side: BorderSide(color: Colors.grey[300]!),
+
+                  // "Next" button to go to booking details
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BookingDetailsScreen(
+                              serviceName: widget.serviceName,
+                              amount: 1000.00, // Replace if you have dynamic pricing
+                              serviceType: widget.serviceType,
+                              description: _descriptionController.text,
+                              uploadedImageUrl: _uploadedImageUrl,
                             ),
                           ),
-                          child: const Text('Save Draft'),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[800],
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => BookingDetailsScreen(
-                                  serviceName: widget.serviceName,
-                                  amount:
-                                      1000.00, // TODO: Replace with actual service amount
-                                  serviceType:
-                                      widget.serviceType, // Pass service type
-                                  description: _descriptionController
-                                      .text, // Pass description
-                                ),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: Colors.blue[800],
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: const Text(
-                            'Book Now',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                      child: const Text(
+                        'Next',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
@@ -332,11 +344,5 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _descriptionController.dispose();
-    super.dispose();
   }
 }

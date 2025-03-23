@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class EditPhotoScreen extends StatefulWidget {
-  const EditPhotoScreen({super.key});
+  final String? currentImageUrl;
+  
+  const EditPhotoScreen({super.key, this.currentImageUrl});
 
   @override
   State<EditPhotoScreen> createState() => _EditPhotoScreenState();
@@ -12,13 +15,20 @@ class EditPhotoScreen extends StatefulWidget {
 class _EditPhotoScreenState extends State<EditPhotoScreen> {
   File? _image;
   final ImagePicker _picker = ImagePicker();
+  bool _hasSelectedNewImage = false;
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final XFile? pickedFile = await _picker.pickImage(source: source);
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source, 
+        imageQuality: 80,
+        maxWidth: 800,
+        maxHeight: 800,
+      );
       if (pickedFile != null) {
         setState(() {
           _image = File(pickedFile.path);
+          _hasSelectedNewImage = true;
         });
         _showMessage('Photo selected successfully');
       }
@@ -93,8 +103,10 @@ class _EditPhotoScreenState extends State<EditPhotoScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              if (_image != null) {
+              if (_hasSelectedNewImage && _image != null) {
                 Navigator.of(context).pop(_image);
+              } else if (widget.currentImageUrl != null && !_hasSelectedNewImage) {
+                Navigator.of(context).pop(null);
               } else {
                 _showMessage('Please select an image first');
               }
@@ -114,15 +126,26 @@ class _EditPhotoScreenState extends State<EditPhotoScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircleAvatar(
-              radius: 50,
+              radius: 60,
               backgroundColor: Colors.grey[200],
-              backgroundImage: _image != null ? FileImage(_image!) : null,
-              child: _image == null
-                  ? const Icon(
-                      Icons.person,
-                      size: 50,
-                      color: Colors.grey,
-                    )
+              backgroundImage: _hasSelectedNewImage && _image != null 
+                  ? FileImage(_image!) 
+                  : null,
+              child: _hasSelectedNewImage == false && _image == null
+                  ? widget.currentImageUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(60),
+                          child: CachedNetworkImage(
+                            imageUrl: widget.currentImageUrl!,
+                            fit: BoxFit.cover,
+                            width: 120,
+                            height: 120,
+                            placeholder: (context, url) => CircularProgressIndicator(),
+                            errorWidget: (context, url, error) => 
+                                const Icon(Icons.person, size: 60, color: Colors.grey),
+                          ),
+                        )
+                      : const Icon(Icons.person, size: 60, color: Colors.grey)
                   : null,
             ),
             const SizedBox(height: 24),
@@ -142,3 +165,4 @@ class _EditPhotoScreenState extends State<EditPhotoScreen> {
     );
   }
 }
+

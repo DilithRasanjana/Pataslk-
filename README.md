@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Pataslk App - Visit us -  https://pataslk.live/
 
 ## Overview
@@ -46,10 +47,32 @@ To fix the "missing-client-identifier" error and enable phone authentication, yo
 
 1. Run the following command in your project directory:
 
+=======
+# Pataslk App
+
+## Firebase Authentication Setup
+
+### SHA Certificate Setup (Required for Phone Auth)
+
+To fix the "missing-client-identifier" error and enable phone authentication, you need to add SHA certificate fingerprints to your Firebase project:
+
+#### For Debug SHA-1 and SHA-256:
+
+1. Run the following command in your project directory:
+
+>>>>>>> Backend-pataslk
    ```bash
    # For Windows
    cd android
    ./gradlew signingReport
+<<<<<<< HEAD
+=======
+   
+   # For macOS/Linux
+   cd android
+   ./gradlew signingReport
+   ```
+>>>>>>> Backend-pataslk
 
 2. Look for the "SHA1" and "SHA-256" values under the "Task :app:signingReport" section:
 
@@ -72,12 +95,15 @@ To bypass reCAPTCHA verification during development:
 
 This allows you to test phone authentication without actually sending SMS messages.
 
+<<<<<<< HEAD
 ### Firebase Configuration
 
 The app is configured with Firebase using the following details:
 - Project ID: pataslk-app
 - Android package name: com.example.pataslk
 
+=======
+>>>>>>> Backend-pataslk
 ### Troubleshooting
 
 #### reCAPTCHA Redirect Issue
@@ -85,7 +111,11 @@ If Firebase is redirecting to a web browser for reCAPTCHA verification:
 
 1. Make sure your SHA certificate fingerprints are correctly added in Firebase
 2. Add test phone numbers in Firebase console as described above
+<<<<<<< HEAD
 3. Check that the package name in Firebase matches your app's package name (com.example.pataslk)
+=======
+3. Check that the package name in Firebase matches your app's package name
+>>>>>>> Backend-pataslk
 4. Wait a few hours after adding fingerprints (sometimes changes take time to propagate)
 
 #### For Production Release
@@ -109,6 +139,7 @@ If Firebase is redirecting to a web browser for reCAPTCHA verification:
   - Go to Firebase Console → Authentication → Phone → Phone numbers for testing
   - Add your test phone number
   - This will bypass actual SMS verification for listed numbers during development
+<<<<<<< HEAD
 
 ## Used Packages
 - firebase_core: Firebase Core functionality
@@ -149,3 +180,5 @@ pataslk/
 
 ## Contact
 [Your contact information]
+=======
+>>>>>>> Backend-pataslk
