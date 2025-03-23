@@ -164,7 +164,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         },
         contentPadding: const EdgeInsets.all(16),
         leading: CircleAvatar(
-          backgroundColor: iconColor.withOpacity(0.1),
+          backgroundColor: iconColor.withAlpha(15),
           child: Icon(notificationIcon, color: iconColor),
         ),
         title: Text(
@@ -293,11 +293,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
         final serviceName = data['serviceName'] ?? 'Unknown Service';
         final serviceType = data['serviceType'] ?? '';
         final bookingDateTs = data['bookingDate'] as Timestamp?;
-        final bookingDate = bookingDateTs != null ? bookingDateTs.toDate() : null;
+        final bookingDate = bookingDateTs?.toDate();
         final bookingTimeStr = data['bookingTime'] as String?;
         final description = data['description'] ?? '';
         final address = data['location'] ?? '';
         final imageUrl = data['imageUrl'] as String?;
+        final bookingStatus = data['status'] as String?;
         
         if (bookingDate != null && bookingTimeStr != null) {
           final timeString = bookingTimeStr.split(' ')[0];
@@ -305,6 +306,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
           final hour = int.tryParse(timeParts[0]) ?? 0;
           final minute = int.tryParse(timeParts[1]) ?? 0;
           final timeOfDay = TimeOfDay(hour: hour, minute: minute);
+          
+          if (!mounted) return;
           
           Navigator.push(
             context,
@@ -318,6 +321,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 selectedTime: timeOfDay,
                 description: description,
                 uploadedImageUrl: imageUrl,
+                status: bookingStatus ?? 'Pending',
               ),
             ),
           );
